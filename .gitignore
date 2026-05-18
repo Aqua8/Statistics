@@ -1,1 +1,33 @@
+
+
+#============
+    Common
+#============
+.idea/
+.DS_Store
+
+
+#============
+    Claude
+#============
 .claude/
+CLAUDE.md
+.mcp.json
+
+
+#============
+    Front
+#============
+frontend/node_modules/
+frontend/.idea/
+frontend/.DS_Store
+
+
+#============
+    Back
+#============
+backend/target
+backend/.gradle
+backend/build
+backend/.idea/
+backend/.DS_Store
