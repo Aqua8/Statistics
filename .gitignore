@@ -11,7 +11,7 @@
     Claude
 #============
 .claude/
-./CLAUDE.md
+CLAUDE.md
 .mcp.json
 .plan.md
 
