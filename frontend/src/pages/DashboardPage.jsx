@@ -47,6 +47,15 @@ export default function DashboardPage() {
   const [devices, setDevices] = useState([])
   const [browsers, setBrowsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeVisitors, setActiveVisitors] = useState(0)
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    const sse = new EventSource(`/api/projects/${projectId}/stats/realtime?token=${token}`)
+    sse.addEventListener('visitors', (e) => setActiveVisitors(parseInt(e.data, 10)))
+    sse.onerror = () => sse.close()
+    return () => sse.close()
+  }, [projectId])
 
   useEffect(() => {
     setLoading(true)
@@ -98,6 +107,10 @@ export default function DashboardPage() {
       </header>
 
       <div className={styles.summary}>
+        <div className={`${styles.card} ${styles.activeCard}`}>
+          <p className={styles.cardLabel}>현재 방문자 <span className={styles.liveDot} /></p>
+          <p className={styles.cardValue}>{activeVisitors.toLocaleString()}</p>
+        </div>
         <div className={styles.card}>
           <p className={styles.cardLabel}>총 페이지뷰</p>
           <p className={styles.cardValue}>{totalViews.toLocaleString()}</p>

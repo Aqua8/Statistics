@@ -4,11 +4,14 @@ import com.dashboard.backend.dto.BreakdownStatResponse;
 import com.dashboard.backend.dto.DailyStatResponse;
 import com.dashboard.backend.dto.PageStatResponse;
 import com.dashboard.backend.dto.ReferrerStatResponse;
+import com.dashboard.backend.realtime.RealtimeSseManager;
 import com.dashboard.backend.service.StatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,6 +22,7 @@ import java.util.List;
 public class StatController {
 
     private final StatService statService;
+    private final RealtimeSseManager realtimeSseManager;
 
     @GetMapping("/daily")
     public ResponseEntity<List<DailyStatResponse>> getDailyStats(
@@ -58,5 +62,11 @@ public class StatController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(statService.getBrowserStats(projectId, from, to));
+    }
+
+    @GetMapping(value = "/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter realtimeVisitors(@PathVariable Long projectId) {
+        String trackingKey = statService.getTrackingKey(projectId);
+        return realtimeSseManager.subscribe(trackingKey);
     }
 }

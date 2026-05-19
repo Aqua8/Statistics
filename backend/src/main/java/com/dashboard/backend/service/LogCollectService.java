@@ -2,6 +2,7 @@ package com.dashboard.backend.service;
 
 import com.dashboard.backend.domain.PageLog;
 import com.dashboard.backend.dto.LogCollectRequest;
+import com.dashboard.backend.realtime.ActiveVisitorStore;
 import com.dashboard.backend.repository.PageLogRepository;
 import com.dashboard.backend.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ public class LogCollectService {
 
     private final PageLogRepository pageLogRepository;
     private final ProjectRepository projectRepository;
+    private final ActiveVisitorStore activeVisitorStore;
 
     public void collect(LogCollectRequest request, String ipAddress) {
         if (!projectRepository.existsByTrackingKey(request.getTrackingKey())) {
@@ -32,5 +34,6 @@ public class LogCollectService {
                 request.getDeviceType(),
                 request.getBrowser()
         ));
+        activeVisitorStore.record(request.getTrackingKey(), ipAddress);
     }
 }

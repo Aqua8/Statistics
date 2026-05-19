@@ -37,6 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearer != null && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
         }
-        return null;
+        // SSE는 헤더를 지원하지 않으므로 쿼리 파라미터로 폴백
+        return request.getParameter("token");
     }
 }
