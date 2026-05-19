@@ -6,10 +6,10 @@ import com.dashboard.backend.repository.PageLogRepository;
 import com.dashboard.backend.repository.PageStatRepository;
 import com.dashboard.backend.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.step.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
-import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -53,6 +53,6 @@ public class PageStatTasklet implements Tasklet {
     }
 
     private LocalDate getTargetDate(ChunkContext chunkContext) {
-        return LocalDate.parse(chunkContext.getStepContext().getJobParameters().getString("targetDate"));
+        return LocalDate.parse((String) chunkContext.getStepContext().getJobParameters().get("targetDate"));
     }
 }
