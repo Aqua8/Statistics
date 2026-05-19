@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = document.currentScript || document.querySelector('script[data-key]');
   if (!script) return;
 
   var trackingKey = script.getAttribute('data-key');
@@ -28,8 +28,8 @@
     return 'Other';
   }
 
-  function send(eventType, duration) {
-    var payload = JSON.stringify({
+  function buildPayload(eventType, duration) {
+    return JSON.stringify({
       trackingKey: trackingKey,
       pageUrl: location.href,
       referrer: document.referrer || null,
@@ -39,28 +39,36 @@
       deviceType: getDeviceType(),
       browser: getBrowser(),
     });
+  }
 
+  // 즉시 전송용 (fetch - 로드 시)
+  function sendFetch(eventType, duration) {
+    fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: buildPayload(eventType, duration),
+    }).catch(function () {});
+  }
+
+  // 이탈 전송용 (sendBeacon - 탭 닫힘에도 안정적)
+  function sendBeaconSafe(eventType, duration) {
+    var payload = buildPayload(eventType, duration);
     if (navigator.sendBeacon) {
       navigator.sendBeacon(apiUrl, new Blob([payload], { type: 'application/json' }));
     } else {
-      fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-        keepalive: true,
-      }).catch(function () {});
+      fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: payload, keepalive: true }).catch(function () {});
     }
   }
 
   // 페이지 로드 즉시 pageview 전송 (일별 통계 + 실시간 카운트)
-  send('pageview', 0);
+  sendFetch('pageview', 0);
 
   // 페이지 이탈 시 체류시간 기록 (pageleave는 일별 통계에서 제외)
   var left = false;
   function sendLeave() {
     if (left) return;
     left = true;
-    send('pageleave', Date.now() - startTime);
+    sendBeaconSafe('pageleave', Date.now() - startTime);
   }
 
   document.addEventListener('visibilitychange', function () {
@@ -69,5 +77,5 @@
   window.addEventListener('pagehide', sendLeave);
 
   // SPA 라우트 전환 시 수동 호출용
-  window.tracker = { pageview: function () { startTime = Date.now(); send('pageview', 0); } };
+  window.tracker = { pageview: function () { startTime = Date.now(); sendFetch('pageview', 0); } };
 })();
