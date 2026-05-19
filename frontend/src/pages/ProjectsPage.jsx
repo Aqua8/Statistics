@@ -8,6 +8,17 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState([])
   const [form, setForm] = useState({ name: '', domain: '' })
   const [loading, setLoading] = useState(true)
+  const [snippetId, setSnippetId] = useState(null)
+  const [copied, setCopied] = useState(false)
+
+  const getSnippet = (trackingKey) =>
+    `<script src="${location.origin}/tracker.js" data-key="${trackingKey}" async></script>`
+
+  const handleCopy = (trackingKey) => {
+    navigator.clipboard.writeText(getSnippet(trackingKey))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   useEffect(() => {
     getProjects()
@@ -65,26 +76,45 @@ export default function ProjectsPage() {
       ) : (
         <ul className={styles.list}>
           {projects.map((p) => (
-            <li key={p.id} className={styles.item}>
-              <div className={styles.info}>
-                <span className={styles.name}>{p.name}</span>
-                <span className={styles.domain}>{p.domain}</span>
-                <code className={styles.key}>{p.trackingKey}</code>
+            <li key={p.id}>
+              <div className={styles.item}>
+                <div className={styles.info}>
+                  <span className={styles.name}>{p.name}</span>
+                  <span className={styles.domain}>{p.domain}</span>
+                  <code className={styles.key}>{p.trackingKey}</code>
+                </div>
+                <div className={styles.actions}>
+                  <button
+                    onClick={() => setSnippetId(snippetId === p.id ? null : p.id)}
+                    className={styles.snippetBtn}
+                  >
+                    {snippetId === p.id ? '닫기' : '삽입 코드'}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/projects/${p.id}/dashboard`)}
+                    className={styles.dashBtn}
+                  >
+                    대시보드
+                  </button>
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className={styles.deleteBtn}
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
-              <div className={styles.actions}>
-                <button
-                  onClick={() => navigate(`/projects/${p.id}/dashboard`)}
-                  className={styles.dashBtn}
-                >
-                  대시보드
-                </button>
-                <button
-                  onClick={() => handleDelete(p.id)}
-                  className={styles.deleteBtn}
-                >
-                  삭제
-                </button>
-              </div>
+              {snippetId === p.id && (
+                <div className={styles.snippetBox}>
+                  <p className={styles.snippetLabel}>아래 코드를 웹사이트의 <code>&lt;head&gt;</code> 또는 <code>&lt;body&gt;</code> 끝에 추가하세요.</p>
+                  <div className={styles.snippetRow}>
+                    <code className={styles.snippet}>{getSnippet(p.trackingKey)}</code>
+                    <button onClick={() => handleCopy(p.trackingKey)} className={styles.copyBtn}>
+                      {copied ? '복사됨 ✓' : '복사'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>
