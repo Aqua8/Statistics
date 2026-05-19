@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+이 프로젝트의 상세 계획은 @plan.md 를 참고하세요.
+
 ## Project Structure
 
 This is a Statistics project with a `backend/` and `frontend/` split. Both directories are currently empty — the project is in early setup.
