@@ -72,6 +72,7 @@
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  margin-bottom: 0;
 }
 
 .info {
@@ -122,6 +123,65 @@
   border-radius: 7px;
   font-size: 13px;
   cursor: pointer;
+}
+
+.snippetBtn {
+  padding: 7px 14px;
+  background: #fff;
+  color: #4f6ef7;
+  border: 1px solid #4f6ef7;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.snippetBox {
+  background: #f8f9ff;
+  border: 1px solid #e0e4ff;
+  border-radius: 10px;
+  padding: 16px 20px;
+  list-style: none;
+}
+
+.snippetLabel {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.snippetLabel code {
+  background: #eee;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.snippetRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.snippet {
+  flex: 1;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 10px 14px;
+  border-radius: 7px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.copyBtn {
+  padding: 7px 14px;
+  background: #4f6ef7;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .empty {

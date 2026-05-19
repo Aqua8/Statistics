@@ -52,6 +52,28 @@ public interface PageLogRepository extends JpaRepository<PageLog, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
 
+    @Query(value = "SELECT COALESCE(device_type, 'unknown'), COUNT(*) AS cnt " +
+                   "FROM page_logs " +
+                   "WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +
+                   "AND created_at BETWEEN :from AND :to " +
+                   "GROUP BY device_type",
+           nativeQuery = true)
+    List<Object[]> groupByDeviceType(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
+    @Query(value = "SELECT COALESCE(browser, 'unknown'), COUNT(*) AS cnt " +
+                   "FROM page_logs " +
+                   "WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +
+                   "AND created_at BETWEEN :from AND :to " +
+                   "GROUP BY browser",
+           nativeQuery = true)
+    List<Object[]> groupByBrowser(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
     List<PageLog> findByTrackingKeyAndCreatedAtBetween(
             String trackingKey, LocalDateTime from, LocalDateTime to);
 }
