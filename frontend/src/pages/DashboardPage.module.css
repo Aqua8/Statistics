@@ -11,6 +11,40 @@
   margin-bottom: 24px;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exportBtn {
+  padding: 7px 16px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.noData {
+  text-align: center;
+  color: #bbb;
+  padding: 40px 0;
+  font-size: 13px;
+}
+
 .backBtn {
   background: none;
   border: none;

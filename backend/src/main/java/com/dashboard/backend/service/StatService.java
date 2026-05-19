@@ -1,10 +1,12 @@
 package com.dashboard.backend.service;
 
 import com.dashboard.backend.domain.Project;
+import com.dashboard.backend.dto.BreakdownStatResponse;
 import com.dashboard.backend.dto.DailyStatResponse;
 import com.dashboard.backend.dto.PageStatResponse;
 import com.dashboard.backend.dto.ReferrerStatResponse;
 import com.dashboard.backend.repository.DailyStatRepository;
+import com.dashboard.backend.repository.PageLogRepository;
 import com.dashboard.backend.repository.PageStatRepository;
 import com.dashboard.backend.repository.ProjectRepository;
 import com.dashboard.backend.repository.ReferrerStatRepository;
@@ -24,6 +26,7 @@ public class StatService {
     private final PageStatRepository pageStatRepository;
     private final ReferrerStatRepository referrerStatRepository;
     private final ProjectRepository projectRepository;
+    private final PageLogRepository pageLogRepository;
 
     public List<DailyStatResponse> getDailyStats(Long projectId, LocalDate from, LocalDate to) {
         Project project = findProject(projectId);
@@ -44,6 +47,22 @@ public class StatService {
         return referrerStatRepository
                 .findByProjectAndStatDateBetweenOrderByVisitsDesc(project, from, to)
                 .stream().map(ReferrerStatResponse::from).toList();
+    }
+
+    public List<BreakdownStatResponse> getDeviceStats(Long projectId, LocalDate from, LocalDate to) {
+        Project project = findProject(projectId);
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59, 999_999_999);
+        return pageLogRepository.groupByDeviceType(project.getTrackingKey(), start, end)
+                .stream().map(BreakdownStatResponse::from).toList();
+    }
+
+    public List<BreakdownStatResponse> getBrowserStats(Long projectId, LocalDate from, LocalDate to) {
+        Project project = findProject(projectId);
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59, 999_999_999);
+        return pageLogRepository.groupByBrowser(project.getTrackingKey(), start, end)
+                .stream().map(BreakdownStatResponse::from).toList();
     }
 
     private Project findProject(Long projectId) {

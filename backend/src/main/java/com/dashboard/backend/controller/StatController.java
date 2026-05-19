@@ -1,5 +1,6 @@
 package com.dashboard.backend.controller;
 
+import com.dashboard.backend.dto.BreakdownStatResponse;
 import com.dashboard.backend.dto.DailyStatResponse;
 import com.dashboard.backend.dto.PageStatResponse;
 import com.dashboard.backend.dto.ReferrerStatResponse;
@@ -41,5 +42,21 @@ public class StatController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(statService.getReferrerStats(projectId, from, to));
+    }
+
+    @GetMapping("/devices")
+    public ResponseEntity<List<BreakdownStatResponse>> getDeviceStats(
+            @PathVariable Long projectId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(statService.getDeviceStats(projectId, from, to));
+    }
+
+    @GetMapping("/browsers")
+    public ResponseEntity<List<BreakdownStatResponse>> getBrowserStats(
+            @PathVariable Long projectId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(statService.getBrowserStats(projectId, from, to));
     }
 }
