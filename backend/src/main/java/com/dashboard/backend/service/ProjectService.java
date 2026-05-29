@@ -50,8 +50,12 @@ public class ProjectService {
     }
 
     private User findUser(Long userId) {
-        return userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if ("Y".equals(user.getDelYn())) {
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+        }
+        return user;
     }
 
     // UUID 충돌 가능성은 극히 낮지만 tracker.js에 노출되는 키라 중복 없음을 보장

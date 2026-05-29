@@ -83,7 +83,8 @@ export default function DashboardPage() {
     const token = localStorage.getItem('token')
     const sse = new EventSource(`/api/projects/${projectId}/stats/realtime?token=${token}`)
     sse.addEventListener('visitors', (e) => setActiveVisitors(parseInt(e.data, 10)))
-    sse.onerror = () => sse.close()
+    // 401/403 등 인증 오류는 재연결해도 의미없으므로 닫고, 그 외 일시적 오류는 브라우저 자동 재연결에 맡김
+    sse.onerror = (e) => { if (sse.readyState === EventSource.CLOSED) sse.close() }
     return () => sse.close()
   }, [projectId])
 
@@ -113,7 +114,14 @@ export default function DashboardPage() {
 
   const handleDateChange = (key, value) => {
     setActivePreset(null)
-    setRange((prev) => ({ ...prev, [key]: value }))
+    setRange((prev) => {
+      const next = { ...prev, [key]: value }
+      // from > to 역전 방지
+      if (next.from > next.to) {
+        return key === 'from' ? { from: value, to: value } : { from: value, to: prev.to }
+      }
+      return next
+    })
   }
 
   const totalViews = daily.reduce((s, d) => s + (d.totalViews ?? 0), 0)

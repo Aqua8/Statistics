@@ -8,6 +8,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState([])
   const [form, setForm] = useState({ name: '', domain: '' })
   const [loading, setLoading] = useState(true)
+  const [createError, setCreateError] = useState('')
   const [snippetId, setSnippetId] = useState(null)
   const [copied, setCopied] = useState(false)
 
@@ -28,9 +29,14 @@ export default function ProjectsPage() {
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    const project = await createProject(form.name, form.domain)
-    setProjects([...projects, project])
-    setForm({ name: '', domain: '' })
+    setCreateError('')
+    try {
+      const project = await createProject(form.name, form.domain)
+      setProjects([...projects, project])
+      setForm({ name: '', domain: '' })
+    } catch {
+      setCreateError('프로젝트 생성에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 
   const handleDelete = async (id) => {
@@ -73,6 +79,7 @@ export default function ProjectsPage() {
           />
           <button type="submit" className={styles.createBtn}>+ 추가</button>
         </form>
+        {createError && <p className={styles.createError}>{createError}</p>}
       </div>
 
       {loading ? (
