@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject, deleteProject } from '../api/projects'
 import styles from './ProjectsPage.module.css'
+
+const getSnippet = (trackingKey) =>
+  `<script src="${location.origin}/tracker.js" data-key="${trackingKey}" async></script>`
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
@@ -9,17 +12,15 @@ export default function ProjectsPage() {
   const [form, setForm] = useState({ name: '', domain: '' })
   const [loading, setLoading] = useState(true)
   const [createError, setCreateError] = useState('')
+  const [actionError, setActionError] = useState('')
   const [snippetId, setSnippetId] = useState(null)
-  const [copied, setCopied] = useState(false)
+  const [copiedId, setCopiedId] = useState(null)
 
-  const getSnippet = (trackingKey) =>
-    `<script src="${location.origin}/tracker.js" data-key="${trackingKey}" async></script>`
-
-  const handleCopy = (trackingKey) => {
+  const handleCopy = useCallback((trackingKey, id) => {
     navigator.clipboard.writeText(getSnippet(trackingKey))
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+    setCopiedId(id)
+    setTimeout(() => setCopiedId((cur) => (cur === id ? null : cur)), 2000)
+  }, [])
 
   useEffect(() => {
     getProjects()
@@ -32,23 +33,28 @@ export default function ProjectsPage() {
     setCreateError('')
     try {
       const project = await createProject(form.name, form.domain)
-      setProjects([...projects, project])
+      setProjects((prev) => [...prev, project])
       setForm({ name: '', domain: '' })
     } catch {
       setCreateError('프로젝트 생성에 실패했습니다. 다시 시도해주세요.')
     }
   }
 
-  const handleDelete = async (id) => {
+  const handleDelete = useCallback(async (id) => {
     if (!confirm('프로젝트를 삭제하시겠습니까?')) return
-    await deleteProject(id)
-    setProjects(projects.filter((p) => p.id !== id))
-  }
+    setActionError('')
+    try {
+      await deleteProject(id)
+      setProjects((prev) => prev.filter((p) => p.id !== id))
+    } catch {
+      setActionError('프로젝트 삭제에 실패했습니다. 다시 시도해주세요.')
+    }
+  }, [])
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem('token')
     navigate('/login')
-  }
+  }, [navigate])
 
   return (
     <div className={styles.container}>
@@ -81,6 +87,8 @@ export default function ProjectsPage() {
         </form>
         {createError && <p className={styles.createError}>{createError}</p>}
       </div>
+
+      {actionError && <p className={styles.createError}>{actionError}</p>}
 
       {loading ? (
         <p className={styles.empty}>불러오는 중...</p>
@@ -131,8 +139,8 @@ export default function ProjectsPage() {
                     <p className={styles.snippetLabel}>아래 코드를 웹사이트의 <code>&lt;head&gt;</code> 또는 <code>&lt;body&gt;</code> 끝에 추가하세요.</p>
                     <div className={styles.snippetRow}>
                       <code className={styles.snippet}>{getSnippet(p.trackingKey)}</code>
-                      <button onClick={() => handleCopy(p.trackingKey)} className={styles.copyBtn}>
-                        {copied ? '복사됨 ✓' : '복사'}
+                      <button onClick={() => handleCopy(p.trackingKey, p.id)} className={styles.copyBtn}>
+                        {copiedId === p.id ? '복사됨 ✓' : '복사'}
                       </button>
                     </div>
                   </div>
