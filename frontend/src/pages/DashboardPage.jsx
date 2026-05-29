@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, memo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, Legend,
@@ -34,28 +34,34 @@ const DATE_PRESETS = [
   { label: '30일', days: 29 },
 ]
 
-function BreakdownPie({ data, title }) {
-  if (!data.length) return <p className={styles.noData}>데이터 없음</p>
+function BreakdownPie({ data, title, description }) {
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{title}</h2>
-      <ResponsiveContainer width="100%" height={220}>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="count"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={80}
-            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-          >
-            {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-          </Pie>
-          <Tooltip formatter={(v) => v.toLocaleString()} />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
+      <h2 className={styles.sectionTitle}>
+        {title}
+        <InfoButton description={description} />
+      </h2>
+      {data.length === 0 ? (
+        <p className={styles.noData}>데이터 없음</p>
+      ) : (
+        <ResponsiveContainer width="100%" height={220}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="count"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+            >
+              {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+            </Pie>
+            <Tooltip formatter={(v) => v.toLocaleString()} />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
     </section>
   )
 }
@@ -64,13 +70,33 @@ function SkeletonSection() {
   return <div className={styles.skeletonSection} />
 }
 
+function InfoButton({ description }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <button className={styles.infoBtn} onClick={() => setOpen(true)}>?</button>
+      {open && (
+        <div className={styles.modalOverlay} onClick={() => setOpen(false)}>
+          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+            <p className={styles.modalDesc}>{description}</p>
+            <button className={styles.modalClose} onClick={() => setOpen(false)}>닫기</button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 // 차트 블록을 memo로 분리 — SSE 실시간 방문자(activeVisitors)가 5초마다 갱신돼도
 // daily/pages/referrers/devices/browsers가 그대로면 차트는 리렌더되지 않음
 const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices, browsers }) {
   return (
     <>
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>일별 트래픽</h2>
+        <h2 className={styles.sectionTitle}>
+          일별 트래픽
+          <InfoButton description={"Spring Batch가 매일 새벽 1시에 전날 로그를 집계한 결과입니다.\n\n• 페이지뷰: pageview 이벤트 총 횟수\n• 순방문자: 고유 IP 기준 중복 제거\n\n오늘 데이터는 내일 새벽 1시 이후 반영됩니다."} />
+        </h2>
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={daily}>
             <CartesianGrid strokeDasharray="3 3" stroke="#eef0f8" />
@@ -85,7 +111,10 @@ const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices
 
       <div className={styles.row}>
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>인기 페이지 TOP 10</h2>
+          <h2 className={styles.sectionTitle}>
+            인기 페이지 TOP 10
+            <InfoButton description={"선택 기간 동안 가장 많이 조회된 페이지 상위 10개입니다.\n\n• 조회수: pageview 이벤트 기준\n• 순방문자: 고유 IP 기준 중복 제거"} />
+          </h2>
           {pages.length === 0 ? (
             <p className={styles.noData}>데이터 없음</p>
           ) : (
@@ -102,7 +131,10 @@ const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices
         </section>
 
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>유입 경로 TOP 10</h2>
+          <h2 className={styles.sectionTitle}>
+            유입 경로 TOP 10
+            <InfoButton description={"방문자가 어떤 외부 사이트를 통해 유입됐는지 보여줍니다.\n\n• 직접 접속(referrer 없음)은 집계에서 제외됩니다.\n• 선택 기간 내 방문 수 기준 TOP 10입니다."} />
+          </h2>
           {referrers.length === 0 ? (
             <p className={styles.noData}>데이터 없음</p>
           ) : (
@@ -120,8 +152,8 @@ const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices
       </div>
 
       <div className={styles.row}>
-        <BreakdownPie data={devices} title="디바이스 분포" />
-        <BreakdownPie data={browsers} title="브라우저 분포" />
+        <BreakdownPie data={devices} title="디바이스 분포" description={"방문자의 접속 디바이스 유형 비율입니다.\n\nUser-Agent를 분석해 아래로 분류합니다.\n• mobile: 스마트폰\n• tablet: 태블릿\n• desktop: PC / 노트북"} />
+        <BreakdownPie data={browsers} title="브라우저 분포" description={"방문자가 사용한 브라우저 비율입니다.\n\nUser-Agent를 분석해 Chrome / Firefox / Safari / Edge / IE / Other로 분류합니다."} />
       </div>
     </>
   )
@@ -153,8 +185,14 @@ const LiveVisitorCard = memo(function LiveVisitorCard({ projectId }) {
 })
 
 export default function DashboardPage() {
-  const { projectId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const projectId = location.state?.projectId
+
+  // state 없이 직접 URL 접근(새로고침 등)하면 프로젝트 목록으로 이동
+  useEffect(() => {
+    if (!projectId) navigate('/projects', { replace: true })
+  }, [projectId, navigate])
 
   const [range, setRange] = useState(() => ({ from: daysAgo(13), to: daysAgo(0) }))
   const [activePreset, setActivePreset] = useState('14일')

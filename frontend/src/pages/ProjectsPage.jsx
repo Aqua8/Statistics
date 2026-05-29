@@ -6,6 +6,21 @@ import styles from './ProjectsPage.module.css'
 const getSnippet = (trackingKey) =>
   `<script src="${location.origin}/tracker.js" data-key="${trackingKey}" async></script>`
 
+// 로그인 후 프로젝트 목록에서 현재 사이트 도메인과 일치하는 프로젝트를 찾아 트래커 초기화
+// 일치하는 도메인이 없으면 첫 번째 프로젝트로 폴백
+function injectSelfTracker(projects) {
+  if (!projects.length) return
+  if (document.querySelector('script[data-self-tracker]')) return // 중복 주입 방지
+  const matched = projects.find((p) => location.hostname.includes(p.domain) || p.domain.includes(location.hostname))
+  const project = matched || projects[0]
+  const script = document.createElement('script')
+  script.src = '/tracker.js'
+  script.dataset.key = project.trackingKey
+  script.dataset.selfTracker = 'true'
+  script.async = true
+  document.head.appendChild(script)
+}
+
 export default function ProjectsPage() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState([])
@@ -24,7 +39,10 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     getProjects()
-      .then(setProjects)
+      .then((data) => {
+        setProjects(data)
+        injectSelfTracker(data)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -121,7 +139,7 @@ export default function ProjectsPage() {
                       {snippetId === p.id ? '닫기' : '삽입 코드'}
                     </button>
                     <button
-                      onClick={() => navigate(`/projects/${p.id}/dashboard`)}
+                      onClick={() => navigate('/dashboard', { state: { projectId: p.id } })}
                       className={styles.dashBtn}
                     >
                       대시보드 →
