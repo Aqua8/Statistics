@@ -14,6 +14,19 @@ function toDateStr(date) {
   return date.toISOString().slice(0, 10)
 }
 
+function daysAgo(n) {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return toDateStr(d)
+}
+
+const DATE_PRESETS = [
+  { label: '오늘', days: 0 },
+  { label: '7일', days: 6 },
+  { label: '14일', days: 13 },
+  { label: '30일', days: 29 },
+]
+
 function BreakdownPie({ data, title }) {
   if (!data.length) return <p className={styles.noData}>데이터 없음</p>
   return (
@@ -21,7 +34,15 @@ function BreakdownPie({ data, title }) {
       <h2 className={styles.sectionTitle}>{title}</h2>
       <ResponsiveContainer width="100%" height={220}>
         <PieChart>
-          <Pie data={data} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+          <Pie
+            data={data}
+            dataKey="count"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={80}
+            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+          >
             {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
           </Pie>
           <Tooltip formatter={(v) => v.toLocaleString()} />
@@ -30,6 +51,14 @@ function BreakdownPie({ data, title }) {
       </ResponsiveContainer>
     </section>
   )
+}
+
+function SkeletonCard() {
+  return <div className={styles.skeletonCard} />
+}
+
+function SkeletonSection() {
+  return <div className={styles.skeletonSection} />
 }
 
 export default function DashboardPage() {
@@ -41,6 +70,7 @@ export default function DashboardPage() {
   defaultFrom.setDate(today.getDate() - 13)
 
   const [range, setRange] = useState({ from: toDateStr(defaultFrom), to: toDateStr(today) })
+  const [activePreset, setActivePreset] = useState('14일')
   const [daily, setDaily] = useState([])
   const [pages, setPages] = useState([])
   const [referrers, setReferrers] = useState([])
@@ -76,6 +106,16 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [projectId, range])
 
+  const handlePreset = (preset) => {
+    setActivePreset(preset.label)
+    setRange({ from: daysAgo(preset.days), to: toDateStr(new Date()) })
+  }
+
+  const handleDateChange = (key, value) => {
+    setActivePreset(null)
+    setRange((prev) => ({ ...prev, [key]: value }))
+  }
+
   const totalViews = daily.reduce((s, d) => s + (d.totalViews ?? 0), 0)
   const totalVisitors = daily.reduce((s, d) => s + (d.uniqueVisitors ?? 0), 0)
   const avgDuration = daily.length
@@ -97,48 +137,90 @@ export default function DashboardPage() {
       <header className={styles.header}>
         <button onClick={() => navigate('/projects')} className={styles.backBtn}>← 프로젝트 목록</button>
         <div className={styles.headerRight}>
-          <div className={styles.dateRange}>
-            <input type="date" value={range.from} onChange={(e) => setRange({ ...range, from: e.target.value })} className={styles.dateInput} />
-            <span>~</span>
-            <input type="date" value={range.to} onChange={(e) => setRange({ ...range, to: e.target.value })} className={styles.dateInput} />
+          <div className={styles.presets}>
+            {DATE_PRESETS.map((p) => (
+              <button
+                key={p.label}
+                onClick={() => handlePreset(p)}
+                className={`${styles.presetBtn} ${activePreset === p.label ? styles.presetActive : ''}`}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
-          <button onClick={handleExport} className={styles.exportBtn} disabled={loading}>엑셀 다운로드</button>
+          <div className={styles.dateRange}>
+            <input
+              type="date"
+              value={range.from}
+              onChange={(e) => handleDateChange('from', e.target.value)}
+              className={styles.dateInput}
+            />
+            <span className={styles.dateSep}>~</span>
+            <input
+              type="date"
+              value={range.to}
+              onChange={(e) => handleDateChange('to', e.target.value)}
+              className={styles.dateInput}
+            />
+          </div>
+          <button onClick={handleExport} className={styles.exportBtn} disabled={loading}>
+            엑셀 다운로드
+          </button>
         </div>
       </header>
 
       <div className={styles.summary}>
-        <div className={`${styles.card} ${styles.activeCard}`}>
-          <p className={styles.cardLabel}>현재 방문자 <span className={styles.liveDot} /></p>
+        <div className={`${styles.card} ${styles.cardLive}`}>
+          <p className={styles.cardLabel}>
+            현재 방문자
+            <span className={styles.liveDot} />
+          </p>
           <p className={styles.cardValue}>{activeVisitors.toLocaleString()}</p>
+          <p className={styles.cardSub}>실시간</p>
         </div>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.cardBlue}`}>
           <p className={styles.cardLabel}>총 페이지뷰</p>
-          <p className={styles.cardValue}>{totalViews.toLocaleString()}</p>
+          <p className={styles.cardValue}>{loading ? '—' : totalViews.toLocaleString()}</p>
+          <p className={styles.cardSub}>선택 기간 합계</p>
         </div>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.cardPurple}`}>
           <p className={styles.cardLabel}>순방문자</p>
-          <p className={styles.cardValue}>{totalVisitors.toLocaleString()}</p>
+          <p className={styles.cardValue}>{loading ? '—' : totalVisitors.toLocaleString()}</p>
+          <p className={styles.cardSub}>IP 기준 중복 제거</p>
         </div>
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.cardOrange}`}>
           <p className={styles.cardLabel}>평균 체류시간</p>
-          <p className={styles.cardValue}>{avgDuration}초</p>
+          <p className={styles.cardValue}>{loading ? '—' : `${avgDuration}초`}</p>
+          <p className={styles.cardSub}>일별 평균</p>
         </div>
       </div>
 
       {loading ? (
-        <p className={styles.loading}>불러오는 중...</p>
+        <>
+          <div className={styles.skeletonRow}>
+            <SkeletonSection />
+          </div>
+          <div className={`${styles.row} ${styles.skeletonGrid}`}>
+            <SkeletonSection />
+            <SkeletonSection />
+          </div>
+          <div className={`${styles.row} ${styles.skeletonGrid}`}>
+            <SkeletonSection />
+            <SkeletonSection />
+          </div>
+        </>
       ) : (
         <>
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>일별 트래픽</h2>
             <ResponsiveContainer width="100%" height={240}>
               <LineChart data={daily}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                <XAxis dataKey="statDate" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip />
-                <Line type="monotone" dataKey="totalViews" name="페이지뷰" stroke="#4f6ef7" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="uniqueVisitors" name="순방문자" stroke="#48bb78" strokeWidth={2} dot={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#eef0f8" />
+                <XAxis dataKey="statDate" tick={{ fontSize: 11, fill: '#8a90aa' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#8a90aa' }} />
+                <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e2e6f0', fontSize: 13 }} />
+                <Line type="monotone" dataKey="totalViews" name="페이지뷰" stroke="#4f6ef7" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="uniqueVisitors" name="순방문자" stroke="#48bb78" strokeWidth={2.5} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </section>
@@ -146,28 +228,36 @@ export default function DashboardPage() {
           <div className={styles.row}>
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>인기 페이지 TOP 10</h2>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={pages} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="pageUrl" type="category" width={160} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="views" name="조회수" fill="#4f6ef7" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {pages.length === 0 ? (
+                <p className={styles.noData}>데이터 없음</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={pages} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eef0f8" />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: '#8a90aa' }} />
+                    <YAxis dataKey="pageUrl" type="category" width={160} tick={{ fontSize: 11, fill: '#8a90aa' }} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e2e6f0', fontSize: 13 }} />
+                    <Bar dataKey="views" name="조회수" fill="#4f6ef7" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </section>
 
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>유입 경로 TOP 10</h2>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={referrers} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} />
-                  <YAxis dataKey="referrer" type="category" width={160} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar dataKey="visits" name="방문수" fill="#48bb78" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              {referrers.length === 0 ? (
+                <p className={styles.noData}>데이터 없음</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={260}>
+                  <BarChart data={referrers} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#eef0f8" />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: '#8a90aa' }} />
+                    <YAxis dataKey="referrer" type="category" width={160} tick={{ fontSize: 11, fill: '#8a90aa' }} />
+                    <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e2e6f0', fontSize: 13 }} />
+                    <Bar dataKey="visits" name="방문수" fill="#48bb78" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </section>
           </div>
 

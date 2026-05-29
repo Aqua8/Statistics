@@ -26,32 +26,46 @@ export default function RegisterPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>회원가입</h1>
+        <div className={styles.brand}>
+          <div className={styles.brandIcon}>S</div>
+          <span className={styles.brandName}>StatDash</span>
+        </div>
+        <h1 className={styles.title}>계정 만들기</h1>
+        <p className={styles.subtitle}>무료로 시작하세요</p>
         <form onSubmit={handleSubmit} className={styles.form}>
-          <input
-            type="text"
-            placeholder="이름"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={styles.input}
-            required
-          />
-          <input
-            type="email"
-            placeholder="이메일"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className={styles.input}
-            required
-          />
-          <input
-            type="password"
-            placeholder="비밀번호"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className={styles.input}
-            required
-          />
+          <div className={styles.field}>
+            <label className={styles.label}>이름</label>
+            <input
+              type="text"
+              placeholder="홍길동"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className={styles.input}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>이메일</label>
+            <input
+              type="email"
+              placeholder="email@example.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className={styles.input}
+              required
+            />
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>비밀번호</label>
+            <input
+              type="password"
+              placeholder="8자 이상 입력하세요"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className={styles.input}
+              required
+            />
+          </div>
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.button} disabled={loading}>
             {loading ? '가입 중...' : '회원가입'}

@@ -41,7 +41,7 @@
     });
   }
 
-  // 즉시 전송용 (fetch - 로드 시)
+  // 일반 요청에는 fetch 사용 (응답 대기 가능)
   function sendFetch(eventType, duration) {
     fetch(apiUrl, {
       method: 'POST',
@@ -50,7 +50,7 @@
     }).catch(function () {});
   }
 
-  // 이탈 전송용 (sendBeacon - 탭 닫힘에도 안정적)
+  // 탭 닫힘 직전에는 fetch가 취소될 수 있어 sendBeacon 사용; 미지원 브라우저는 keepalive fetch로 폴백
   function sendBeaconSafe(eventType, duration) {
     var payload = buildPayload(eventType, duration);
     if (navigator.sendBeacon) {
@@ -60,13 +60,13 @@
     }
   }
 
-  // 페이지 로드 즉시 pageview 전송 (일별 통계 + 실시간 카운트)
+  // 페이지 진입 즉시 pageview 전송 — 일별 통계 집계 및 실시간 방문자 카운트에 반영
   sendFetch('pageview', 0);
 
-  // 페이지 이탈 시 체류시간 기록 (pageleave는 일별 통계에서 제외)
+  // 이탈 시 체류시간을 pageleave 이벤트로 전송 — 서버 집계에서는 제외하고 duration 기록용으로만 사용
   var left = false;
   function sendLeave() {
-    if (left) return;
+    if (left) return; // visibilitychange + pagehide 중복 전송 방지
     left = true;
     sendBeaconSafe('pageleave', Date.now() - startTime);
   }
@@ -76,6 +76,6 @@
   });
   window.addEventListener('pagehide', sendLeave);
 
-  // SPA 라우트 전환 시 수동 호출용
+  // SPA에서 라우터 전환 후 window.tracker.pageview() 를 수동 호출하면 새 pageview로 기록
   window.tracker = { pageview: function () { startTime = Date.now(); sendFetch('pageview', 0); } };
 })();

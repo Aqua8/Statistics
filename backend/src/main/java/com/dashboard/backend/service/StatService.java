@@ -50,6 +50,7 @@ public class StatService {
                 .stream().map(ReferrerStatResponse::from).toList();
     }
 
+    // 디바이스/브라우저는 사전 집계 테이블이 없어 원시 page_logs를 직접 집계
     public List<BreakdownStatResponse> getDeviceStats(Long projectId, LocalDate from, LocalDate to) {
         Project project = findProject(projectId);
         LocalDateTime start = from.atStartOfDay();

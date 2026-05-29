@@ -34,14 +34,16 @@ public class DailyStatTasklet implements Tasklet {
         for (Project project : projects) {
             String key = project.getTrackingKey();
 
+            // pageleave는 집계 제외 — pageview 이벤트만 방문 횟수로 카운트
             long totalViews = pageLogRepository
                     .countByTrackingKeyAndEventTypeAndCreatedAtBetween(key, "pageview", start, end);
+            // IP 기준 중복 제거로 순 방문자 수 계산
             long uniqueVisitors = pageLogRepository
                     .countUniqueVisitorsByTrackingKeyAndPeriod(key, start, end);
             Double avgDuration = pageLogRepository
                     .avgDurationByTrackingKeyAndPeriod(key, start, end);
 
-            // 재실행 시 중복 방지: 기존 데이터 삭제 후 재생성
+            // 멱등성 보장: 같은 날짜로 재실행해도 데이터가 중복되지 않도록 먼저 삭제
             dailyStatRepository.deleteByProjectAndStatDate(project, targetDate);
             dailyStatRepository.save(new DailyStat(
                     project, targetDate,

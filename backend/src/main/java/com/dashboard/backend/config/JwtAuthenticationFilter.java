@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearer != null && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
         }
-        // SSE는 헤더를 지원하지 않으므로 쿼리 파라미터로 폴백
+        // EventSource API는 커스텀 헤더를 지원하지 않아 SSE 연결 시 ?token= 쿼리 파라미터로 전달
         return request.getParameter("token");
     }
 }

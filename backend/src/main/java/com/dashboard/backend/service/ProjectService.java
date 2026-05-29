@@ -50,6 +50,7 @@ public class ProjectService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
+    // UUID 충돌 가능성은 극히 낮지만 tracker.js에 노출되는 키라 중복 없음을 보장
     private String generateUniqueTrackingKey() {
         String key;
         do {

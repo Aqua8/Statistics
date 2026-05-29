@@ -32,8 +32,10 @@ public class ReferrerStatTasklet implements Tasklet {
 
         List<Project> projects = projectRepository.findAll();
         for (Project project : projects) {
+            // 멱등성 보장: 재실행 시 중복 방지
             referrerStatRepository.deleteByProjectAndStatDate(project, targetDate);
 
+            // row[0]=referrer, row[1]=visits (JPQL groupBy 결과)
             List<ReferrerStat> stats = pageLogRepository
                     .groupByReferrer(project.getTrackingKey(), start, end)
                     .stream()

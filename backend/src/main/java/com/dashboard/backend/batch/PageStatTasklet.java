@@ -32,8 +32,10 @@ public class PageStatTasklet implements Tasklet {
 
         List<Project> projects = projectRepository.findAll();
         for (Project project : projects) {
+            // 멱등성 보장: 재실행 시 중복 방지
             pageStatRepository.deleteByProjectAndStatDate(project, targetDate);
 
+            // row[0]=pageUrl, row[1]=totalViews, row[2]=uniqueVisitors (JPQL groupBy 결과)
             List<PageStat> stats = pageLogRepository
                     .groupByPageUrl(project.getTrackingKey(), start, end)
                     .stream()

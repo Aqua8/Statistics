@@ -33,8 +33,10 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // SSE 응답은 ASYNC dispatch로 처리되므로 별도 허용 필요 (없으면 SSE 스트림이 403)
                         .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        // 외부 사이트에 심긴 tracker.js는 JWT 토큰 없이 호출하므로 인증 제외
                         .requestMatchers(req -> "POST".equals(req.getMethod()) && "/api/collect".equals(req.getRequestURI())).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(

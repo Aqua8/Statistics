@@ -19,6 +19,7 @@ public class LogCollectService {
     private final ActiveVisitorStore activeVisitorStore;
 
     public void collect(LogCollectRequest request, String ipAddress) {
+        // 등록되지 않은 트래킹 키로 오는 스팸 로그 차단
         if (!projectRepository.existsByTrackingKey(request.getTrackingKey())) {
             throw new IllegalArgumentException("유효하지 않은 트래킹 키입니다.");
         }
@@ -34,6 +35,7 @@ public class LogCollectService {
                 request.getDeviceType(),
                 request.getBrowser()
         ));
+        // 로그 저장과 동시에 실시간 방문자 카운트 갱신
         activeVisitorStore.record(request.getTrackingKey(), ipAddress);
     }
 }
