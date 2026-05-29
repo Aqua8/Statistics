@@ -12,7 +12,7 @@ public class DailyStatResponse {
     private LocalDate statDate;
     private Long totalViews;
     private Long uniqueVisitors;
-    private Double avgDuration;
+    private Long avgDuration;
     private Double bounceRate;
 
     public static DailyStatResponse from(DailyStat stat) {

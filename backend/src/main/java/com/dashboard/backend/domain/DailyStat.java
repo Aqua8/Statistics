@@ -28,7 +28,7 @@ public class DailyStat {
 
     private Long uniqueVisitors;
 
-    private Double avgDuration;
+    private Long avgDuration;
 
     private Double bounceRate;
 
@@ -36,7 +36,7 @@ public class DailyStat {
     private String delYn = "N";
 
     public DailyStat(Project project, LocalDate statDate, Long totalViews,
-                     Long uniqueVisitors, Double avgDuration, Double bounceRate) {
+                     Long uniqueVisitors, Long avgDuration, Double bounceRate) {
         this.project = project;
         this.statDate = statDate;
         this.totalViews = totalViews;
