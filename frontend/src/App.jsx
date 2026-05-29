@@ -12,7 +12,7 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route element={<PrivateRoute />}>
         <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/projects/:projectId/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

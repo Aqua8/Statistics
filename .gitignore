@@ -21,6 +21,9 @@ plan.md
 frontend/node_modules/
 frontend/.idea/
 frontend/.DS_Store
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
 
 
 #============
