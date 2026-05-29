@@ -20,7 +20,7 @@ public class LogCollectService {
 
     public void collect(LogCollectRequest request, String ipAddress) {
         // 등록되지 않은 트래킹 키로 오는 스팸 로그 차단
-        if (!projectRepository.existsByTrackingKey(request.getTrackingKey())) {
+        if (!projectRepository.existsByTrackingKeyAndDelYn(request.getTrackingKey(), "N")) {
             throw new IllegalArgumentException("유효하지 않은 트래킹 키입니다.");
         }
         pageLogRepository.save(new PageLog(

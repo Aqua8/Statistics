@@ -30,7 +30,7 @@ public class DailyStatTasklet implements Tasklet {
         LocalDateTime start = targetDate.atStartOfDay();
         LocalDateTime end = targetDate.atTime(23, 59, 59, 999_999_999);
 
-        List<Project> projects = projectRepository.findAll();
+        List<Project> projects = projectRepository.findByDelYn("N");
         for (Project project : projects) {
             String key = project.getTrackingKey();
 

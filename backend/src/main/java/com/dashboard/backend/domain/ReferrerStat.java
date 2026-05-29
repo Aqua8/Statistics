@@ -28,6 +28,9 @@ public class ReferrerStat {
 
     private Long visits;
 
+    @Column(nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String delYn = "N";
+
     public ReferrerStat(Project project, LocalDate statDate, String referrer, Long visits) {
         this.project = project;
         this.statDate = statDate;

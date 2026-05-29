@@ -72,7 +72,11 @@ public class StatService {
     }
 
     private Project findProject(Long projectId) {
-        return projectRepository.findById(projectId)
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+        if ("Y".equals(project.getDelYn())) {
+            throw new IllegalArgumentException("프로젝트를 찾을 수 없습니다.");
+        }
+        return project;
     }
 }

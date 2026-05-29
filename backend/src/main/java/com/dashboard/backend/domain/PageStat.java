@@ -31,6 +31,9 @@ public class PageStat {
 
     private Long uniqueVisitors;
 
+    @Column(nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String delYn = "N";
+
     public PageStat(Project project, LocalDate statDate, String pageUrl,
                     Long views, Long uniqueVisitors) {
         this.project = project;
