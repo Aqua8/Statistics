@@ -49,7 +49,7 @@ public class DailyStatTasklet implements Tasklet {
                     project, targetDate,
                     totalViews,
                     uniqueVisitors,
-                    avgDuration != null ? avgDuration : 0.0,
+                    avgDuration != null ? avgDuration.longValue() : 0L,
                     0.0  // TODO: 세션 기반 이탈률 계산
             ));
 
