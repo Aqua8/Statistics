@@ -17,8 +17,9 @@ export default function LoginPage() {
       const data = await login(form.email, form.password)
       localStorage.setItem('token', data.token)
       navigate('/projects')
-    } catch {
-      setError('이메일 또는 비밀번호가 올바르지 않습니다.')
+    } catch (err) {
+      const msg = err.response?.data?.message
+      setError(msg || '이메일 또는 비밀번호가 올바르지 않습니다.')
     } finally {
       setLoading(false)
     }

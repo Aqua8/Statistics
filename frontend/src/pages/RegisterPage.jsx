@@ -1,23 +1,39 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { register } from '../api/auth'
 import styles from './AuthPage.module.css'
 
+const PW_RULES = [
+  { label: '8자 이상',          test: (pw) => pw.length >= 8 },
+  { label: '영문 포함',          test: (pw) => /[A-Za-z]/.test(pw) },
+  { label: '숫자 포함',          test: (pw) => /\d/.test(pw) },
+  { label: '특수문자 포함',       test: (pw) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw) },
+]
+
 export default function RegisterPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '', name: '' })
+  const [pwTouched, setPwTouched] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const pwChecks = useMemo(() => PW_RULES.map((r) => ({ ...r, ok: r.test(form.password) })), [form.password])
+  const pwValid = pwChecks.every((r) => r.ok)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!pwValid) {
+      setPwTouched(true)
+      return
+    }
     setError('')
     setLoading(true)
     try {
       await register(form.email, form.password, form.name)
       navigate('/login')
-    } catch {
-      setError('이미 사용 중인 이메일이거나 입력값을 확인해주세요.')
+    } catch (err) {
+      const msg = err.response?.data?.message
+      setError(msg || '이미 사용 중인 이메일이거나 입력값을 확인해주세요.')
     } finally {
       setLoading(false)
     }
@@ -59,12 +75,22 @@ export default function RegisterPage() {
             <label className={styles.label}>비밀번호</label>
             <input
               type="password"
-              placeholder="8자 이상 입력하세요"
+              placeholder="8자 이상, 영문·숫자·특수문자 포함"
               value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className={styles.input}
+              onChange={(e) => { setForm({ ...form, password: e.target.value }); setPwTouched(true) }}
+              className={`${styles.input} ${pwTouched && !pwValid ? styles.inputError : ''}`}
               required
             />
+            {/* 비밀번호 입력 시작 후 조건 체크리스트 표시 */}
+            {pwTouched && (
+              <ul className={styles.pwRules}>
+                {pwChecks.map((r) => (
+                  <li key={r.label} className={r.ok ? styles.pwRuleOk : styles.pwRuleFail}>
+                    {r.ok ? '✓' : '✗'} {r.label}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.button} disabled={loading}>
