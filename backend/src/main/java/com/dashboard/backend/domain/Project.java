@@ -35,10 +35,17 @@ public class Project {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String delYn = "N";
+
     public Project(User user, String name, String domain, String trackingKey) {
         this.user = user;
         this.name = name;
         this.domain = domain;
         this.trackingKey = trackingKey;
+    }
+
+    public void softDelete() {
+        this.delYn = "Y";
     }
 }

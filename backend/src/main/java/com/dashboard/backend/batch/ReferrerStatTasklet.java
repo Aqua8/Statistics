@@ -30,10 +30,12 @@ public class ReferrerStatTasklet implements Tasklet {
         LocalDateTime start = targetDate.atStartOfDay();
         LocalDateTime end = targetDate.atTime(23, 59, 59, 999_999_999);
 
-        List<Project> projects = projectRepository.findAll();
+        List<Project> projects = projectRepository.findByDelYn("N");
         for (Project project : projects) {
+            // 멱등성 보장: 재실행 시 중복 방지
             referrerStatRepository.deleteByProjectAndStatDate(project, targetDate);
 
+            // row[0]=referrer, row[1]=visits (JPQL groupBy 결과)
             List<ReferrerStat> stats = pageLogRepository
                     .groupByReferrer(project.getTrackingKey(), start, end)
                     .stream()
