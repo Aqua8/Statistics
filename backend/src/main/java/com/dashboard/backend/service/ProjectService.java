@@ -31,7 +31,7 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public List<ProjectResponse> getMyProjects(Long userId) {
         User user = findUser(userId);
-        return projectRepository.findByUser(user).stream()
+        return projectRepository.findByUserAndDelYn(user, "N").stream()
                 .map(ProjectResponse::from)
                 .toList();
     }
@@ -39,17 +39,26 @@ public class ProjectService {
     public void delete(Long userId, Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+        if ("Y".equals(project.getDelYn())) {
+            throw new IllegalArgumentException("프로젝트를 찾을 수 없습니다.");
+        }
         if (!project.getUser().getId().equals(userId)) {
             throw new IllegalArgumentException("권한이 없습니다.");
         }
-        projectRepository.delete(project);
+        project.softDelete();
+        projectRepository.save(project);
     }
 
     private User findUser(Long userId) {
-        return userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        if ("Y".equals(user.getDelYn())) {
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+        }
+        return user;
     }
 
+    // UUID 충돌 가능성은 극히 낮지만 tracker.js에 노출되는 키라 중복 없음을 보장
     private String generateUniqueTrackingKey() {
         String key;
         do {

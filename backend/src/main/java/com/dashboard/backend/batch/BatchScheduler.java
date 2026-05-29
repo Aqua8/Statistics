@@ -19,12 +19,13 @@ public class BatchScheduler {
     private final JobOperator jobLauncher;
     private final Job dailyStatJob;
 
-    @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시
+    @Scheduled(cron = "0 0 1 * * *") // 매일 새벽 1시 — 전날 로그가 모두 쌓인 후 집계
     public void runDailyStatJob() {
         LocalDate yesterday = LocalDate.now().minusDays(1);
         JobParameters params = new JobParametersBuilder()
                 .addString("targetDate", yesterday.toString())
-                .addLong("runTime", System.currentTimeMillis()) // 동일 날짜 재실행 허용
+                // Spring Batch는 동일 파라미터 조합의 Job 재실행을 막으므로 runTime으로 유니크하게 만듦
+                .addLong("runTime", System.currentTimeMillis())
                 .toJobParameters();
         try {
             jobLauncher.run(dailyStatJob, params);

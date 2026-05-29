@@ -32,6 +32,9 @@ public class DailyStat {
 
     private Double bounceRate;
 
+    @Column(nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String delYn = "N";
+
     public DailyStat(Project project, LocalDate statDate, Long totalViews,
                      Long uniqueVisitors, Double avgDuration, Double bounceRate) {
         this.project = project;

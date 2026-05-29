@@ -33,6 +33,9 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String delYn = "N";
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects = new ArrayList<>();
 
@@ -40,5 +43,9 @@ public class User {
         this.email = email;
         this.password = password;
         this.name = name;
+    }
+
+    public void softDelete() {
+        this.delYn = "Y";
     }
 }
