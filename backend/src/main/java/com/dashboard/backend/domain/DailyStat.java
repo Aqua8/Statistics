@@ -32,16 +32,26 @@ public class DailyStat {
 
     private Double bounceRate;
 
+    private Long sessionCount;
+
+    private Double avgPagesPerSession;
+
+    private Long avgSessionDuration;
+
     @Column(nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
     private String delYn = "N";
 
     public DailyStat(Project project, LocalDate statDate, Long totalViews,
-                     Long uniqueVisitors, Long avgDuration, Double bounceRate) {
+                     Long uniqueVisitors, Long avgDuration, Double bounceRate,
+                     Long sessionCount, Double avgPagesPerSession, Long avgSessionDuration) {
         this.project = project;
         this.statDate = statDate;
         this.totalViews = totalViews;
         this.uniqueVisitors = uniqueVisitors;
         this.avgDuration = avgDuration;
         this.bounceRate = bounceRate;
+        this.sessionCount = sessionCount;
+        this.avgPagesPerSession = avgPagesPerSession;
+        this.avgSessionDuration = avgSessionDuration;
     }
 }

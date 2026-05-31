@@ -51,6 +51,11 @@ public class DailyStatTasklet implements Tasklet {
                     ? (double) bounceSessions / totalSessions * 100.0
                     : 0.0;
 
+            Double avgPagesPerSession = pageLogRepository
+                    .avgPagesPerSessionByTrackingKeyAndPeriod(key, start, end);
+            Double avgSessionDurationRaw = pageLogRepository
+                    .avgSessionDurationByTrackingKeyAndPeriod(key, start, end);
+
             // 멱등성 보장: 같은 날짜로 재실행해도 데이터가 중복되지 않도록 먼저 삭제
             dailyStatRepository.deleteByProjectAndStatDate(project, targetDate);
             dailyStatRepository.save(new DailyStat(
@@ -58,7 +63,10 @@ public class DailyStatTasklet implements Tasklet {
                     totalViews,
                     uniqueVisitors,
                     avgDuration != null ? avgDuration.longValue() : 0L,
-                    bounceRate
+                    bounceRate,
+                    totalSessions,
+                    avgPagesPerSession != null ? avgPagesPerSession : 0.0,
+                    avgSessionDurationRaw != null ? avgSessionDurationRaw.longValue() : 0L
             ));
 
             contribution.incrementWriteCount(1);

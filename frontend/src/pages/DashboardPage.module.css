@@ -146,10 +146,34 @@
   box-shadow: var(--shadow-md);
 }
 
-.cardLive  { border-top-color: #48bb78; }
-.cardBlue  { border-top-color: #4f6ef7; }
-.cardPurple{ border-top-color: #805ad5; }
-.cardOrange{ border-top-color: #ed8936; }
+.cardLive   { border-top-color: #48bb78; }
+.cardBlue   { border-top-color: #4f6ef7; }
+.cardPurple { border-top-color: #805ad5; }
+.cardOrange { border-top-color: #ed8936; }
+.cardTeal   { border-top-color: #319795; }
+.cardPink   { border-top-color: #d53f8c; }
+.cardIndigo { border-top-color: #667eea; }
+
+/* ── Session Summary ─────────────────────── */
+
+.sessionSummary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .sessionSummary {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .sessionSummary {
+    grid-template-columns: 1fr;
+  }
+}
 
 .cardLabel {
   font-size: 12px;
