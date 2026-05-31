@@ -23,10 +23,29 @@ client.interceptors.response.use(
     }
     return res
   },
-  (err) => {
-    if (err.response?.status === 401 && localStorage.getItem('token')) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
+  async (err) => {
+    const original = err.config
+    // /auth/refresh 자체가 실패하면 재시도 없이 로그인 페이지로
+    if (err.response?.status === 401 && !original._retry && !original.url.includes('/auth/refresh')) {
+      const refreshToken = localStorage.getItem('refreshToken')
+      if (refreshToken) {
+        original._retry = true
+        try {
+          const res = await client.post('/auth/refresh', { refreshToken })
+          // 성공 인터셉터가 이미 언래핑했으므로 res.data = { token, refreshToken, ... }
+          localStorage.setItem('token', res.data.token)
+          localStorage.setItem('refreshToken', res.data.refreshToken)
+          original.headers.Authorization = `Bearer ${res.data.token}`
+          return client(original)
+        } catch {
+          localStorage.removeItem('token')
+          localStorage.removeItem('refreshToken')
+          window.location.href = '/login'
+        }
+      } else {
+        localStorage.removeItem('token')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(err)
   },

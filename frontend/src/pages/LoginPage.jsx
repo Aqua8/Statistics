@@ -14,8 +14,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const data = await login(form.email, form.password)
-      localStorage.setItem('token', data.token)
+      await login(form.email, form.password)
       navigate('/projects')
     } catch (err) {
       const msg = err.response?.data?.message

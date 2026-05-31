@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject, deleteProject } from '../api/projects'
+import { logout } from '../api/auth'
 import styles from './ProjectsPage.module.css'
 
 const getSnippet = (trackingKey) =>
@@ -70,7 +71,7 @@ export default function ProjectsPage() {
   }, [])
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem('token')
+    logout()
     navigate('/login')
   }, [navigate])
 
