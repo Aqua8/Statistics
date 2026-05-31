@@ -342,7 +342,7 @@ export default function DashboardPage() {
         <div className={`${styles.card} ${styles.cardPurple}`}>
           <p className={styles.cardLabel}>순방문자</p>
           <p className={styles.cardValue}>{loading ? '—' : totalVisitors.toLocaleString()}</p>
-          <p className={styles.cardSub}>IP 기준 중복 제거</p>
+          <p className={styles.cardSub}>중복 방문 제외</p>
         </div>
         <div className={`${styles.card} ${styles.cardOrange}`}>
           <p className={styles.cardLabel}>평균 체류시간</p>
@@ -355,7 +355,7 @@ export default function DashboardPage() {
         <div className={`${styles.card} ${styles.cardTeal}`}>
           <p className={styles.cardLabel}>총 세션 수</p>
           <p className={styles.cardValue}>{loading ? '—' : totalSessions.toLocaleString()}</p>
-          <p className={styles.cardSub}>session_id 기준</p>
+          <p className={styles.cardSub}>고유 방문 세션</p>
         </div>
         <div className={`${styles.card} ${styles.cardPink}`}>
           <p className={styles.cardLabel}>세션당 페이지뷰</p>
@@ -365,7 +365,7 @@ export default function DashboardPage() {
         <div className={`${styles.card} ${styles.cardIndigo}`}>
           <p className={styles.cardLabel}>세션 평균 체류시간</p>
           <p className={styles.cardValue}>{loading ? '—' : `${avgSessionDuration}초`}</p>
-          <p className={styles.cardSub}>pageleave 기준 일별 평균</p>
+          <p className={styles.cardSub}>일별 평균</p>
         </div>
       </div>
 
