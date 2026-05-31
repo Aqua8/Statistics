@@ -44,6 +44,9 @@ public class SecurityConfig {
                         .requestMatchers(req -> "POST".equals(req.getMethod()) && "/api/collect".equals(req.getRequestURI())).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(
+                        new AuthRateLimitFilter(objectMapper),
+                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
                         new CollectRateLimitFilter(collectRateLimiter, objectMapper),
                         UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(
@@ -55,7 +58,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        // 트래커 스크립트(/api/collect)는 외부 사이트에서 호출되므로 * 허용 유지
+        // 대시보드 API는 환경변수 ALLOWED_ORIGINS로 제한 가능 (기본: 개발 편의상 * 허용)
+        String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS", "*");
+        config.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(false);
