@@ -1,5 +1,6 @@
 package com.dashboard.backend.controller;
 
+import com.dashboard.backend.dto.ApiResponse;
 import com.dashboard.backend.dto.LoginRequest;
 import com.dashboard.backend.dto.RegisterRequest;
 import com.dashboard.backend.dto.TokenResponse;
@@ -20,13 +21,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<Void> register(@RequestBody @Valid RegisterRequest request) {
+    public ResponseEntity<ApiResponse<Void>> register(@RequestBody @Valid RegisterRequest request) {
         authService.register(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody @Valid LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<ApiResponse<TokenResponse>> login(@RequestBody @Valid LoginRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(authService.login(request)));
     }
 }

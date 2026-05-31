@@ -1,5 +1,6 @@
 package com.dashboard.backend.controller;
 
+import com.dashboard.backend.dto.ApiResponse;
 import com.dashboard.backend.dto.BreakdownStatResponse;
 import com.dashboard.backend.dto.DailyStatResponse;
 import com.dashboard.backend.dto.PageStatResponse;
@@ -25,51 +26,51 @@ public class StatController {
     private final RealtimeSseManager realtimeSseManager;
 
     @GetMapping("/daily")
-    public ResponseEntity<List<DailyStatResponse>> getDailyStats(
+    public ResponseEntity<ApiResponse<List<DailyStatResponse>>> getDailyStats(
             @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(statService.getDailyStats(projectId, from, to));
+        return ResponseEntity.ok(ApiResponse.ok(statService.getDailyStats(projectId, from, to)));
     }
 
     @GetMapping("/pages")
-    public ResponseEntity<List<PageStatResponse>> getPageStats(
+    public ResponseEntity<ApiResponse<List<PageStatResponse>>> getPageStats(
             @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(statService.getPageStats(projectId, from, to));
+        return ResponseEntity.ok(ApiResponse.ok(statService.getPageStats(projectId, from, to)));
     }
 
     @GetMapping("/referrers")
-    public ResponseEntity<List<ReferrerStatResponse>> getReferrerStats(
+    public ResponseEntity<ApiResponse<List<ReferrerStatResponse>>> getReferrerStats(
             @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(statService.getReferrerStats(projectId, from, to));
+        return ResponseEntity.ok(ApiResponse.ok(statService.getReferrerStats(projectId, from, to)));
     }
 
     @GetMapping("/devices")
-    public ResponseEntity<List<BreakdownStatResponse>> getDeviceStats(
+    public ResponseEntity<ApiResponse<List<BreakdownStatResponse>>> getDeviceStats(
             @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(statService.getDeviceStats(projectId, from, to));
+        return ResponseEntity.ok(ApiResponse.ok(statService.getDeviceStats(projectId, from, to)));
     }
 
     @GetMapping("/browsers")
-    public ResponseEntity<List<BreakdownStatResponse>> getBrowserStats(
+    public ResponseEntity<ApiResponse<List<BreakdownStatResponse>>> getBrowserStats(
             @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(statService.getBrowserStats(projectId, from, to));
+        return ResponseEntity.ok(ApiResponse.ok(statService.getBrowserStats(projectId, from, to)));
     }
 
     @GetMapping("/countries")
-    public ResponseEntity<List<BreakdownStatResponse>> getCountryStats(
+    public ResponseEntity<ApiResponse<List<BreakdownStatResponse>>> getCountryStats(
             @PathVariable Long projectId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(statService.getCountryStats(projectId, from, to));
+        return ResponseEntity.ok(ApiResponse.ok(statService.getCountryStats(projectId, from, to)));
     }
 
     @GetMapping(value = "/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

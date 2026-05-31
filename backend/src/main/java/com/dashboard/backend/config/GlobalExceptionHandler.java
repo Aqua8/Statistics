@@ -1,35 +1,34 @@
 package com.dashboard.backend.config;
 
+import com.dashboard.backend.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException e) {
         String msg = e.getMessage();
         HttpStatus status = resolveStatus(msg);
-        return ResponseEntity.status(status).body(Map.of("message", msg != null ? msg : "잘못된 요청입니다."));
+        return ResponseEntity.status(status).body(ApiResponse.fail(msg != null ? msg : "잘못된 요청입니다."));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException e) {
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
         String msg = e.getBindingResult().getFieldErrors().stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .findFirst().orElse("입력값을 확인해주세요.");
-        return ResponseEntity.badRequest().body(Map.of("message", msg));
+        return ResponseEntity.badRequest().body(ApiResponse.fail(msg));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleUnexpected(Exception e) {
+    public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "서버 오류가 발생했습니다."));
+                .body(ApiResponse.fail("서버 오류가 발생했습니다."));
     }
 
     // 예외 메시지로 적절한 HTTP 상태코드 결정
