@@ -26,7 +26,8 @@ log:
 
 jwt:
   secret: dGhpcy1pcy1hLXNlY3VyZS1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5
-  expiration: 86400000  # 24시간 (ms)
+  expiration: 3600000        # 1시간 (ms)
+  refresh-expiration: 604800000  # 7일 (ms)
 
 server:
   port: 8080
