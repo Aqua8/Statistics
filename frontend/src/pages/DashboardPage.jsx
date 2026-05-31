@@ -5,10 +5,16 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, Legend,
 } from 'recharts'
 import * as XLSX from 'xlsx'
-import { getDailyStats, getPageStats, getReferrerStats, getDeviceStats, getBrowserStats } from '../api/stats'
+import { getDailyStats, getPageStats, getReferrerStats, getDeviceStats, getBrowserStats, getCountryStats } from '../api/stats'
 import styles from './DashboardPage.module.css'
 
 const PIE_COLORS = ['#4f6ef7', '#48bb78', '#ed8936', '#e53e3e', '#805ad5', '#319795']
+
+const countryDisplayNames = new Intl.DisplayNames(['ko'], { type: 'region' })
+function countryName(code) {
+  if (!code || code === 'unknown') return '알 수 없음'
+  try { return countryDisplayNames.of(code) || code } catch { return code }
+}
 
 // Recharts Tooltip 공통 스타일 — 매 렌더마다 새 객체가 생기지 않도록 상수로 추출
 const TOOLTIP_STYLE = { borderRadius: 8, border: '1px solid #e2e6f0', fontSize: 13 }
@@ -89,7 +95,7 @@ function InfoButton({ description }) {
 
 // 차트 블록을 memo로 분리 — SSE 실시간 방문자(activeVisitors)가 5초마다 갱신돼도
 // daily/pages/referrers/devices/browsers가 그대로면 차트는 리렌더되지 않음
-const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices, browsers }) {
+const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices, browsers, countries }) {
   return (
     <>
       <section className={styles.section}>
@@ -155,6 +161,14 @@ const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices
         <BreakdownPie data={devices} title="디바이스 분포" description={"방문자의 접속 디바이스 유형 비율입니다.\n\nUser-Agent를 분석해 아래로 분류합니다.\n• mobile: 스마트폰\n• tablet: 태블릿\n• desktop: PC / 노트북"} />
         <BreakdownPie data={browsers} title="브라우저 분포" description={"방문자가 사용한 브라우저 비율입니다.\n\nUser-Agent를 분석해 Chrome / Firefox / Safari / Edge / IE / Other로 분류합니다."} />
       </div>
+
+      <div className={styles.row}>
+        <BreakdownPie
+          data={countries.map((c) => ({ ...c, name: countryName(c.name) }))}
+          title="국가 분포"
+          description={"방문자 IP를 기반으로 국가를 분류합니다.\n\nMaxMind GeoLite2 데이터베이스를 사용합니다.\n• 사내 네트워크 / 로컬 IP는 '알 수 없음'으로 표시됩니다."}
+        />
+      </div>
     </>
   )
 })
@@ -201,6 +215,7 @@ export default function DashboardPage() {
   const [referrers, setReferrers] = useState([])
   const [devices, setDevices] = useState([])
   const [browsers, setBrowsers] = useState([])
+  const [countries, setCountries] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -211,13 +226,15 @@ export default function DashboardPage() {
       getReferrerStats(projectId, range.from, range.to),
       getDeviceStats(projectId, range.from, range.to),
       getBrowserStats(projectId, range.from, range.to),
+      getCountryStats(projectId, range.from, range.to),
     ])
-      .then(([d, p, r, dv, br]) => {
+      .then(([d, p, r, dv, br, co]) => {
         setDaily(d)
         setPages(p.slice(0, 10))
         setReferrers(r.slice(0, 10))
         setDevices(dv)
         setBrowsers(br)
+        setCountries(co)
       })
       .finally(() => setLoading(false))
   }, [projectId, range])
@@ -255,6 +272,7 @@ export default function DashboardPage() {
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(referrers), '유입경로')
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(devices), '디바이스')
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(browsers), '브라우저')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(countries.map((c) => ({ ...c, name: countryName(c.name) }))), '국가')
     XLSX.writeFile(wb, `stats_${range.from}_${range.to}.xlsx`)
   }
 
@@ -327,9 +345,12 @@ export default function DashboardPage() {
             <SkeletonSection />
             <SkeletonSection />
           </div>
+          <div className={styles.skeletonRow}>
+            <SkeletonSection />
+          </div>
         </>
       ) : (
-        <ChartsBlock daily={daily} pages={pages} referrers={referrers} devices={devices} browsers={browsers} />
+        <ChartsBlock daily={daily} pages={pages} referrers={referrers} devices={devices} browsers={browsers} countries={countries} />
       )}
     </div>
   )

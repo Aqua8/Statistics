@@ -14,3 +14,6 @@ export const getDeviceStats = (projectId, from, to) =>
 
 export const getBrowserStats = (projectId, from, to) =>
   client.get(`/projects/${projectId}/stats/browsers`, { params: { from, to } }).then((r) => r.data)
+
+export const getCountryStats = (projectId, from, to) =>
+  client.get(`/projects/${projectId}/stats/countries`, { params: { from, to } }).then((r) => r.data)

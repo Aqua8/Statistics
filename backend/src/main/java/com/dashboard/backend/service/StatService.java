@@ -101,6 +101,14 @@ public class StatService {
                 .stream().map(BreakdownStatResponse::from).toList();
     }
 
+    public List<BreakdownStatResponse> getCountryStats(Long projectId, LocalDate from, LocalDate to) {
+        Project project = findProject(projectId);
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.atTime(23, 59, 59, 999_999_999);
+        return pageLogRepository.groupByCountry(project.getTrackingKey(), start, end)
+                .stream().map(BreakdownStatResponse::from).toList();
+    }
+
     public String getTrackingKey(Long projectId) {
         return findProject(projectId).getTrackingKey();
     }

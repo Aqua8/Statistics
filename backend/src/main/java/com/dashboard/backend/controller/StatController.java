@@ -64,6 +64,14 @@ public class StatController {
         return ResponseEntity.ok(statService.getBrowserStats(projectId, from, to));
     }
 
+    @GetMapping("/countries")
+    public ResponseEntity<List<BreakdownStatResponse>> getCountryStats(
+            @PathVariable Long projectId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(statService.getCountryStats(projectId, from, to));
+    }
+
     @GetMapping(value = "/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter realtimeVisitors(@PathVariable Long projectId) {
         String trackingKey = statService.getTrackingKey(projectId);
