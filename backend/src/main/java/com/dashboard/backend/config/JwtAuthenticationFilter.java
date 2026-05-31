@@ -3,6 +3,7 @@ package com.dashboard.backend.config;
 import com.dashboard.backend.util.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +34,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String resolveToken(HttpServletRequest request) {
+        // httpOnly 쿠키 우선
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("accessToken".equals(cookie.getName())) return cookie.getValue();
+            }
+        }
+        // Authorization 헤더 폴백 (API 클라이언트 호환)
         String bearer = request.getHeader("Authorization");
         if (bearer != null && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
         }
-        // EventSource API는 커스텀 헤더를 지원하지 않아 SSE 연결 시 ?token= 쿼리 파라미터로 전달
-        return request.getParameter("token");
+        return null;
     }
 }

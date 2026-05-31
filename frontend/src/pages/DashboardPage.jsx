@@ -178,8 +178,8 @@ const LiveVisitorCard = memo(function LiveVisitorCard({ projectId }) {
   const [activeVisitors, setActiveVisitors] = useState(0)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const sse = new EventSource(`/api/projects/${projectId}/stats/realtime?token=${token}`)
+    // httpOnly 쿠키를 브라우저가 자동으로 전송하므로 토큰을 URL에 노출하지 않음
+    const sse = new EventSource(`/api/projects/${projectId}/stats/realtime`, { withCredentials: true })
     sse.addEventListener('visitors', (e) => setActiveVisitors(parseInt(e.data, 10)))
     // 인증 오류 등으로 연결이 끊기면 닫고, 일시적 오류는 브라우저 자동 재연결에 맡김
     sse.onerror = () => { if (sse.readyState === EventSource.CLOSED) sse.close() }
