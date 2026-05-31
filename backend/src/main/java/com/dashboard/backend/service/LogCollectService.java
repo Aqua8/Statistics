@@ -33,7 +33,8 @@ public class LogCollectService {
                 request.getDuration(),
                 request.getCountry(),
                 request.getDeviceType(),
-                request.getBrowser()
+                request.getBrowser(),
+                request.getSessionId()
         ));
         // 로그 저장과 동시에 실시간 방문자 카운트 갱신
         activeVisitorStore.record(request.getTrackingKey(), ipAddress);

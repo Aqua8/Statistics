@@ -24,4 +24,5 @@ public class LogCollectRequest {
     private String country;
     private String deviceType;
     private String browser;
+    private String sessionId;
 }

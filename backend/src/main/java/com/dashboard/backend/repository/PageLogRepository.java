@@ -30,6 +30,28 @@ public interface PageLogRepository extends JpaRepository<PageLog, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
 
+    // 1페이지만 보고 이탈한 세션 수 (bounce session: 해당 날짜에 pageview가 1개인 session_id)
+    @Query(value = "SELECT COUNT(*) FROM (" +
+                   "  SELECT session_id FROM page_logs " +
+                   "  WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +
+                   "  AND created_at BETWEEN :from AND :to AND session_id IS NOT NULL " +
+                   "  GROUP BY session_id HAVING COUNT(*) = 1" +
+                   ") t",
+           nativeQuery = true)
+    long countBounceSessionsByTrackingKeyAndPeriod(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
+    // 세션 ID가 있는 전체 고유 세션 수
+    @Query("SELECT COUNT(DISTINCT p.sessionId) FROM PageLog p " +
+           "WHERE p.trackingKey = :trackingKey AND p.eventType = 'pageview' " +
+           "AND p.createdAt BETWEEN :from AND :to AND p.sessionId IS NOT NULL")
+    long countTotalSessionsByTrackingKeyAndPeriod(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
     @Query(value = "SELECT page_url, COUNT(*) AS views, COUNT(DISTINCT ip_address) AS unique_visitors " +
                    "FROM page_logs " +
                    "WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +

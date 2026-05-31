@@ -45,13 +45,17 @@ public class PageLog {
 
     private String browser;
 
+    @Column(name = "session_id", length = 36)
+    private String sessionId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     public PageLog(String trackingKey, String pageUrl, String referrer,
                    String userAgent, String ipAddress, String eventType,
-                   Long duration, String country, String deviceType, String browser) {
+                   Long duration, String country, String deviceType, String browser,
+                   String sessionId) {
         this.trackingKey = trackingKey;
         this.pageUrl = pageUrl;
         this.referrer = referrer;
@@ -62,5 +66,6 @@ public class PageLog {
         this.country = country;
         this.deviceType = deviceType;
         this.browser = browser;
+        this.sessionId = sessionId;
     }
 }
