@@ -2,6 +2,7 @@ package com.dashboard.backend.repository;
 
 import com.dashboard.backend.domain.PageLog;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -136,4 +137,9 @@ public interface PageLogRepository extends JpaRepository<PageLog, Long> {
 
     List<PageLog> findByTrackingKeyAndCreatedAtBetween(
             String trackingKey, LocalDateTime from, LocalDateTime to);
+
+    // 보존 기간이 지난 로그 일괄 삭제 — ORM 오버헤드 없이 DB 직접 삭제
+    @Modifying
+    @Query(value = "DELETE FROM page_logs WHERE created_at < :cutoff", nativeQuery = true)
+    int deleteOlderThan(@Param("cutoff") LocalDateTime cutoff);
 }

@@ -20,6 +20,10 @@ spring:
     jdbc:
       initialize-schema: always
 
+log:
+  retention:
+    days: 90  # page_logs 보존 기간 (일). 이보다 오래된 로그는 매일 새벽 2시에 자동 삭제
+
 jwt:
   secret: dGhpcy1pcy1hLXNlY3VyZS1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5
   expiration: 86400000  # 24시간 (ms)
