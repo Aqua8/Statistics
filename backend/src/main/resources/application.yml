@@ -20,6 +20,11 @@ spring:
     jdbc:
       initialize-schema: always
 
+rate-limit:
+  collect:
+    max-requests: 60   # IP당 허용 최대 요청 수
+    window-ms: 60000   # 윈도우 크기 (ms), 기본 1분
+
 log:
   retention:
     days: 90  # page_logs 보존 기간 (일). 이보다 오래된 로그는 매일 새벽 2시에 자동 삭제
