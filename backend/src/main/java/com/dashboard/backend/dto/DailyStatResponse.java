@@ -14,6 +14,9 @@ public class DailyStatResponse {
     private Long uniqueVisitors;
     private Long avgDuration;
     private Double bounceRate;
+    private Long sessionCount;
+    private Double avgPagesPerSession;
+    private Long avgSessionDuration;
 
     public static DailyStatResponse from(DailyStat stat) {
         return new DailyStatResponse(
@@ -21,7 +24,10 @@ public class DailyStatResponse {
                 stat.getTotalViews(),
                 stat.getUniqueVisitors(),
                 stat.getAvgDuration(),
-                stat.getBounceRate()
+                stat.getBounceRate(),
+                stat.getSessionCount(),
+                stat.getAvgPagesPerSession(),
+                stat.getAvgSessionDuration()
         );
     }
 }

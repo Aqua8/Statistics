@@ -64,7 +64,17 @@ public class StatService {
                     ? (double) bounceSessions / totalSessions * 100.0
                     : 0.0;
 
-            result.add(new DailyStatResponse(today, totalViews, uniqueVisitors, avgDuration, bounceRate));
+            Double avgPagesPerSession = pageLogRepository
+                    .avgPagesPerSessionByTrackingKeyAndPeriod(key, start, end);
+            Double avgSessionDurationRaw = pageLogRepository
+                    .avgSessionDurationByTrackingKeyAndPeriod(key, start, end);
+
+            result.add(new DailyStatResponse(
+                    today, totalViews, uniqueVisitors, avgDuration, bounceRate,
+                    totalSessions,
+                    avgPagesPerSession != null ? avgPagesPerSession : 0.0,
+                    avgSessionDurationRaw != null ? avgSessionDurationRaw.longValue() : 0L
+            ));
         }
 
         return result;

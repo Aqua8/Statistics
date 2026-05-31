@@ -257,17 +257,36 @@ export default function DashboardPage() {
   }
 
   // daily가 바뀔 때만 재계산 (불필요한 매 렌더 합산 방지)
-  const { totalViews, totalVisitors, avgDuration } = useMemo(() => ({
-    totalViews: daily.reduce((s, d) => s + (d.totalViews ?? 0), 0),
-    totalVisitors: daily.reduce((s, d) => s + (d.uniqueVisitors ?? 0), 0),
-    avgDuration: daily.length
-      ? Math.round(daily.reduce((s, d) => s + (d.avgDuration ?? 0), 0) / daily.length / 1000)
-      : 0,
-  }), [daily])
+  const { totalViews, totalVisitors, avgDuration, totalSessions, avgPagesPerSession, avgSessionDuration } = useMemo(() => {
+    const len = daily.length
+    return {
+      totalViews: daily.reduce((s, d) => s + (d.totalViews ?? 0), 0),
+      totalVisitors: daily.reduce((s, d) => s + (d.uniqueVisitors ?? 0), 0),
+      avgDuration: len
+        ? Math.round(daily.reduce((s, d) => s + (d.avgDuration ?? 0), 0) / len / 1000)
+        : 0,
+      totalSessions: daily.reduce((s, d) => s + (d.sessionCount ?? 0), 0),
+      avgPagesPerSession: len
+        ? (daily.reduce((s, d) => s + (d.avgPagesPerSession ?? 0), 0) / len).toFixed(1)
+        : '0.0',
+      avgSessionDuration: len
+        ? Math.round(daily.reduce((s, d) => s + (d.avgSessionDuration ?? 0), 0) / len / 1000)
+        : 0,
+    }
+  }, [daily])
 
   const handleExport = () => {
     const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(daily), '일별 통계')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(daily.map((d) => ({
+      날짜: d.statDate,
+      페이지뷰: d.totalViews,
+      순방문자: d.uniqueVisitors,
+      평균체류시간_ms: d.avgDuration,
+      이탈률: d.bounceRate,
+      세션수: d.sessionCount,
+      세션당페이지뷰: d.avgPagesPerSession,
+      세션평균체류시간_ms: d.avgSessionDuration,
+    }))), '일별 통계')
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pages), '페이지별')
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(referrers), '유입경로')
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(devices), '디바이스')
@@ -323,11 +342,29 @@ export default function DashboardPage() {
         <div className={`${styles.card} ${styles.cardPurple}`}>
           <p className={styles.cardLabel}>순방문자</p>
           <p className={styles.cardValue}>{loading ? '—' : totalVisitors.toLocaleString()}</p>
-          <p className={styles.cardSub}>IP 기준 중복 제거</p>
+          <p className={styles.cardSub}>중복 방문 제외</p>
         </div>
         <div className={`${styles.card} ${styles.cardOrange}`}>
           <p className={styles.cardLabel}>평균 체류시간</p>
           <p className={styles.cardValue}>{loading ? '—' : `${avgDuration}초`}</p>
+          <p className={styles.cardSub}>일별 평균</p>
+        </div>
+      </div>
+
+      <div className={styles.sessionSummary}>
+        <div className={`${styles.card} ${styles.cardTeal}`}>
+          <p className={styles.cardLabel}>총 세션 수</p>
+          <p className={styles.cardValue}>{loading ? '—' : totalSessions.toLocaleString()}</p>
+          <p className={styles.cardSub}>고유 방문 세션</p>
+        </div>
+        <div className={`${styles.card} ${styles.cardPink}`}>
+          <p className={styles.cardLabel}>세션당 페이지뷰</p>
+          <p className={styles.cardValue}>{loading ? '—' : avgPagesPerSession}</p>
+          <p className={styles.cardSub}>일별 평균</p>
+        </div>
+        <div className={`${styles.card} ${styles.cardIndigo}`}>
+          <p className={styles.cardLabel}>세션 평균 체류시간</p>
+          <p className={styles.cardValue}>{loading ? '—' : `${avgSessionDuration}초`}</p>
           <p className={styles.cardSub}>일별 평균</p>
         </div>
       </div>

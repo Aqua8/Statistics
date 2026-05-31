@@ -52,6 +52,33 @@ public interface PageLogRepository extends JpaRepository<PageLog, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
 
+    // 세션당 평균 페이지뷰 수
+    @Query(value = "SELECT AVG(page_count) FROM (" +
+                   "  SELECT session_id, COUNT(*) AS page_count FROM page_logs " +
+                   "  WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +
+                   "  AND created_at BETWEEN :from AND :to AND session_id IS NOT NULL " +
+                   "  GROUP BY session_id" +
+                   ") t",
+           nativeQuery = true)
+    Double avgPagesPerSessionByTrackingKeyAndPeriod(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
+    // 세션 평균 체류시간 (pageleave duration 합산 기준)
+    @Query(value = "SELECT AVG(session_dur) FROM (" +
+                   "  SELECT session_id, SUM(duration) AS session_dur FROM page_logs " +
+                   "  WHERE tracking_key = :trackingKey AND event_type = 'pageleave' " +
+                   "  AND created_at BETWEEN :from AND :to AND session_id IS NOT NULL " +
+                   "  AND duration IS NOT NULL " +
+                   "  GROUP BY session_id" +
+                   ") t",
+           nativeQuery = true)
+    Double avgSessionDurationByTrackingKeyAndPeriod(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
     @Query(value = "SELECT page_url, COUNT(*) AS views, COUNT(DISTINCT ip_address) AS unique_visitors " +
                    "FROM page_logs " +
                    "WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +
