@@ -1,6 +1,8 @@
 package com.dashboard.backend.config;
 
+import com.dashboard.backend.util.CollectRateLimiter;
 import com.dashboard.backend.util.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +26,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CollectRateLimiter collectRateLimiter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,6 +43,9 @@ public class SecurityConfig {
                         // 외부 사이트에 심긴 tracker.js는 JWT 토큰 없이 호출하므로 인증 제외
                         .requestMatchers(req -> "POST".equals(req.getMethod()) && "/api/collect".equals(req.getRequestURI())).permitAll()
                         .anyRequest().authenticated())
+                .addFilterBefore(
+                        new CollectRateLimitFilter(collectRateLimiter, objectMapper),
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(
                         new JwtAuthenticationFilter(jwtTokenProvider),
                         UsernamePasswordAuthenticationFilter.class);
