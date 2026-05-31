@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,9 +32,42 @@ public class StatService {
 
     public List<DailyStatResponse> getDailyStats(Long projectId, LocalDate from, LocalDate to) {
         Project project = findProject(projectId);
-        return dailyStatRepository
-                .findByProjectAndStatDateBetweenOrderByStatDateAsc(project, from, to)
-                .stream().map(DailyStatResponse::from).toList();
+        List<DailyStatResponse> result = new ArrayList<>(
+                dailyStatRepository
+                        .findByProjectAndStatDateBetweenOrderByStatDateAsc(project, from, to)
+                        .stream().map(DailyStatResponse::from).toList()
+        );
+
+        // Batch는 전날 데이터만 집계하므로, 오늘 날짜가 범위에 포함되고 집계 결과가 없으면 page_logs 직접 조회
+        LocalDate today = LocalDate.now();
+        boolean todayInRange = !today.isBefore(from) && !today.isAfter(to);
+        boolean todayAlreadyAggregated = result.stream().anyMatch(r -> r.getStatDate().equals(today));
+
+        if (todayInRange && !todayAlreadyAggregated) {
+            String key = project.getTrackingKey();
+            LocalDateTime start = today.atStartOfDay();
+            LocalDateTime end = today.atTime(23, 59, 59, 999_999_999);
+
+            long totalViews = pageLogRepository
+                    .countByTrackingKeyAndEventTypeAndCreatedAtBetween(key, "pageview", start, end);
+            long uniqueVisitors = pageLogRepository
+                    .countUniqueVisitorsByTrackingKeyAndPeriod(key, start, end);
+            Double avgDurationRaw = pageLogRepository
+                    .avgDurationByTrackingKeyAndPeriod(key, start, end);
+            long avgDuration = avgDurationRaw != null ? avgDurationRaw.longValue() : 0L;
+
+            long totalSessions = pageLogRepository
+                    .countTotalSessionsByTrackingKeyAndPeriod(key, start, end);
+            long bounceSessions = pageLogRepository
+                    .countBounceSessionsByTrackingKeyAndPeriod(key, start, end);
+            double bounceRate = totalSessions > 0
+                    ? (double) bounceSessions / totalSessions * 100.0
+                    : 0.0;
+
+            result.add(new DailyStatResponse(today, totalViews, uniqueVisitors, avgDuration, bounceRate));
+        }
+
+        return result;
     }
 
     public List<PageStatResponse> getPageStats(Long projectId, LocalDate from, LocalDate to) {
