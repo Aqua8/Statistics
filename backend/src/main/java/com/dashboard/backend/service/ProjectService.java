@@ -36,6 +36,18 @@ public class ProjectService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public void verifyOwnership(Long userId, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+        if ("Y".equals(project.getDelYn())) {
+            throw new IllegalArgumentException("프로젝트를 찾을 수 없습니다.");
+        }
+        if (!project.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("권한이 없습니다.");
+        }
+    }
+
     public void delete(Long userId, Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));

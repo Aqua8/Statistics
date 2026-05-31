@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/dashboard_db
-    username: statistics
-    password: 123!@#qwe
+    url: ${DB_URL:jdbc:mariadb://localhost:3306/dashboard_db}
+    username: ${DB_USERNAME:statistics}
+    password: ${DB_PASSWORD:123!@#qwe}
 
   jpa:
     hibernate:
@@ -30,7 +30,7 @@ log:
     days: 90  # page_logs 보존 기간 (일). 이보다 오래된 로그는 매일 새벽 2시에 자동 삭제
 
 jwt:
-  secret: dGhpcy1pcy1hLXNlY3VyZS1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5
+  secret: ${JWT_SECRET:dGhpcy1pcy1hLXNlY3VyZS1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5}
   expiration: 3600000        # 1시간 (ms)
   refresh-expiration: 604800000  # 7일 (ms)
 
@@ -39,4 +39,4 @@ server:
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: WARN

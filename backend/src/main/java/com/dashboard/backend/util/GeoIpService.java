@@ -35,13 +35,19 @@ public class GeoIpService {
 
     // RFC 1918 사설망 및 루프백 IP — API 호출 없이 바로 null 반환
     private boolean isPrivateIp(String ip) {
-        return ip.equals("127.0.0.1") || ip.equals("::1") || ip.equals("0:0:0:0:0:0:0:1")
-                || ip.startsWith("10.")
-                || ip.startsWith("192.168.")
-                || ip.startsWith("172.16.") || ip.startsWith("172.17.")
-                || ip.startsWith("172.18.") || ip.startsWith("172.19.")
-                || ip.startsWith("172.2")
-                || ip.startsWith("172.30.") || ip.startsWith("172.31.");
+        if (ip.equals("127.0.0.1") || ip.equals("::1") || ip.equals("0:0:0:0:0:0:0:1")) return true;
+        if (ip.startsWith("10.") || ip.startsWith("192.168.")) return true;
+        // RFC 1918: 172.16.0.0/12 → 172.16 ~ 172.31
+        if (ip.startsWith("172.")) {
+            String[] parts = ip.split("\\.");
+            if (parts.length >= 2) {
+                try {
+                    int second = Integer.parseInt(parts[1]);
+                    if (second >= 16 && second <= 31) return true;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return false;
     }
 
     private record IpApiResponse(String status, String countryCode) {}
