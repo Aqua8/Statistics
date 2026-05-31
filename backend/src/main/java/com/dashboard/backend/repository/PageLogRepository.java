@@ -85,6 +85,17 @@ public interface PageLogRepository extends JpaRepository<PageLog, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to);
 
+    @Query(value = "SELECT COALESCE(country, 'unknown'), COUNT(*) AS cnt " +
+                   "FROM page_logs " +
+                   "WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +
+                   "AND created_at BETWEEN :from AND :to " +
+                   "GROUP BY country ORDER BY cnt DESC",
+           nativeQuery = true)
+    List<Object[]> groupByCountry(
+            @Param("trackingKey") String trackingKey,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
+
     @Query(value = "SELECT COALESCE(browser, 'unknown'), COUNT(*) AS cnt " +
                    "FROM page_logs " +
                    "WHERE tracking_key = :trackingKey AND event_type = 'pageview' " +

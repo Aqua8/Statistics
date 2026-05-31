@@ -5,6 +5,7 @@ import com.dashboard.backend.dto.LogCollectRequest;
 import com.dashboard.backend.realtime.ActiveVisitorStore;
 import com.dashboard.backend.repository.PageLogRepository;
 import com.dashboard.backend.repository.ProjectRepository;
+import com.dashboard.backend.util.GeoIpService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ public class LogCollectService {
     private final PageLogRepository pageLogRepository;
     private final ProjectRepository projectRepository;
     private final ActiveVisitorStore activeVisitorStore;
+    private final GeoIpService geoIpService;
 
     public void collect(LogCollectRequest request, String ipAddress) {
         // 등록되지 않은 트래킹 키로 오는 스팸 로그 차단
@@ -31,7 +33,7 @@ public class LogCollectService {
                 ipAddress,
                 request.getEventType(),
                 request.getDuration(),
-                request.getCountry(),
+                geoIpService.getCountry(ipAddress),
                 request.getDeviceType(),
                 request.getBrowser(),
                 request.getSessionId()
