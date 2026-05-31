@@ -1,5 +1,6 @@
 package com.dashboard.backend.controller;
 
+import com.dashboard.backend.dto.ApiResponse;
 import com.dashboard.backend.dto.LogCollectRequest;
 import com.dashboard.backend.service.LogCollectService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,10 +20,10 @@ public class LogCollectController {
     private final LogCollectService logCollectService;
 
     @PostMapping
-    public ResponseEntity<Void> collect(
+    public ResponseEntity<ApiResponse<Void>> collect(
             @RequestBody @Valid LogCollectRequest request,
             HttpServletRequest httpRequest) {
         logCollectService.collect(request, httpRequest.getRemoteAddr());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }

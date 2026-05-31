@@ -1,13 +1,13 @@
 package com.dashboard.backend.controller;
 
 import com.dashboard.backend.batch.BatchService;
+import com.dashboard.backend.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/batch")
@@ -17,14 +17,14 @@ public class BatchController {
     private final BatchService batchService;
 
     @PostMapping("/run")
-    public ResponseEntity<Map<String, String>> run(
+    public ResponseEntity<ApiResponse<Void>> run(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         try {
             batchService.runForDate(date);
-            return ResponseEntity.ok(Map.of("status", "success", "date", date.toString()));
+            return ResponseEntity.ok(ApiResponse.ok());
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("status", "failed", "date", date.toString(), "message", e.getMessage()));
+                    .body(ApiResponse.fail(e.getMessage()));
         }
     }
 }
