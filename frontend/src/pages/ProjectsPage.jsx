@@ -47,15 +47,22 @@ export default function ProjectsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  const isDomainValid = (domain) =>
+    /^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(domain)
+
   const handleCreate = async (e) => {
     e.preventDefault()
     setCreateError('')
+    if (!isDomainValid(form.domain)) {
+      setCreateError('올바른 도메인 형식이 아닙니다. (예: example.com)')
+      return
+    }
     try {
       const project = await createProject(form.name, form.domain)
       setProjects((prev) => [...prev, project])
       setForm({ name: '', domain: '' })
-    } catch {
-      setCreateError('프로젝트 생성에 실패했습니다. 다시 시도해주세요.')
+    } catch (err) {
+      setCreateError(err.response?.data?.message || '프로젝트 생성에 실패했습니다. 다시 시도해주세요.')
     }
   }
 
