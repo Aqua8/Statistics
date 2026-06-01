@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, memo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, Legend,
@@ -200,8 +200,7 @@ const LiveVisitorCard = memo(function LiveVisitorCard({ projectId }) {
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const projectId = searchParams.get('projectId') ? Number(searchParams.get('projectId')) : null
+  const projectId = Number(sessionStorage.getItem('currentProjectId')) || null
 
   useEffect(() => {
     if (!projectId) navigate('/projects', { replace: true })
