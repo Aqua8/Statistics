@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { login } from '../api/auth'
 import styles from './AuthPage.module.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const successMessage = location.state?.message
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -56,11 +58,15 @@ export default function LoginPage() {
               required
             />
           </div>
+          {successMessage && <p className={styles.success}>{successMessage}</p>}
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.button} disabled={loading}>
             {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
+        <p className={styles.link}>
+          <Link to="/forgot-password">비밀번호를 잊으셨나요?</Link>
+        </p>
         <p className={styles.link}>
           계정이 없으신가요? <Link to="/register">회원가입</Link>
         </p>

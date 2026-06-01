@@ -2,9 +2,12 @@ package com.dashboard.backend.service;
 
 import com.dashboard.backend.domain.RefreshToken;
 import com.dashboard.backend.domain.User;
+import com.dashboard.backend.dto.CheckEmailRequest;
+import com.dashboard.backend.dto.FindAccountRequest;
 import com.dashboard.backend.dto.LoginRequest;
 import com.dashboard.backend.dto.RefreshRequest;
 import com.dashboard.backend.dto.RegisterRequest;
+import com.dashboard.backend.dto.ResetPasswordRequest;
 import com.dashboard.backend.dto.TokenResponse;
 import com.dashboard.backend.repository.RefreshTokenRepository;
 import com.dashboard.backend.repository.UserRepository;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +69,35 @@ public class AuthService {
 
     public void logout(RefreshRequest request) {
         refreshTokenRepository.deleteByToken(request.getRefreshToken());
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> findAccountsByName(FindAccountRequest request) {
+        List<User> users = userRepository.findByNameAndDelYn(request.getName(), "N");
+        if (users.isEmpty()) {
+            throw new IllegalArgumentException("해당 이름으로 가입된 계정이 없습니다.");
+        }
+        return users.stream().map(u -> maskEmail(u.getEmail())).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public void checkEmail(CheckEmailRequest request) {
+        userRepository.findByEmailAndDelYn(request.getEmail(), "N")
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+    }
+
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmailAndDelYn(request.getEmail(), "N")
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+    }
+
+    private String maskEmail(String email) {
+        int at = email.indexOf('@');
+        String local = email.substring(0, at);
+        String domain = email.substring(at);
+        String visible = local.substring(0, Math.min(2, local.length()));
+        return visible + "***" + domain;
     }
 
     private String issueRefreshToken(User user) {

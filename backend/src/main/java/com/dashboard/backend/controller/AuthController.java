@@ -1,9 +1,12 @@
 package com.dashboard.backend.controller;
 
 import com.dashboard.backend.dto.ApiResponse;
+import com.dashboard.backend.dto.CheckEmailRequest;
+import com.dashboard.backend.dto.FindAccountRequest;
 import com.dashboard.backend.dto.LoginRequest;
 import com.dashboard.backend.dto.RefreshRequest;
 import com.dashboard.backend.dto.RegisterRequest;
+import com.dashboard.backend.dto.ResetPasswordRequest;
 import com.dashboard.backend.dto.TokenResponse;
 import com.dashboard.backend.service.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,6 +58,23 @@ public class AuthController {
         TokenResponse token = authService.refresh(refreshRequest);
         setTokenCookies(response, token.getToken(), token.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.ok(token));
+    }
+
+    @PostMapping("/find-account")
+    public ResponseEntity<ApiResponse<java.util.List<String>>> findAccount(@RequestBody @Valid FindAccountRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(authService.findAccountsByName(request)));
+    }
+
+    @PostMapping("/check-email")
+    public ResponseEntity<ApiResponse<Void>> checkEmail(@RequestBody @Valid CheckEmailRequest request) {
+        authService.checkEmail(request);
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody @Valid ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 
     @PostMapping("/logout")

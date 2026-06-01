@@ -4,6 +4,7 @@ import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import ProjectsPage from './pages/ProjectsPage'
 import MyPage from './pages/MyPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import PrivateRoute from './components/PrivateRoute'
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route element={<PrivateRoute />}>
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
