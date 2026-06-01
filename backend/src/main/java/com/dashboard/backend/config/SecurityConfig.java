@@ -58,13 +58,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // 트래커 스크립트(/api/collect)는 외부 사이트에서 호출되므로 * 허용 유지
-        // 대시보드 API는 환경변수 ALLOWED_ORIGINS로 제한 가능 (기본: 개발 편의상 * 허용)
-        String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS", "*");
+        // 대시보드 API: 환경변수 ALLOWED_ORIGINS로 허용 출처 지정 (기본: Vite 개발 서버)
+        // allowCredentials=true 이면 * 사용 불가 → 명시적 origin 필수
+        String allowedOrigins = System.getenv().getOrDefault("ALLOWED_ORIGINS", "http://localhost:5173");
         config.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(false);
+        config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
