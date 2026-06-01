@@ -89,7 +89,10 @@ export default function ProjectsPage() {
           <div className={styles.headerIcon}>S</div>
           <h1 className={styles.headerTitle}>내 프로젝트</h1>
         </div>
-        <button onClick={handleLogout} className={styles.logoutBtn}>로그아웃</button>
+        <div className={styles.headerActions}>
+          <button onClick={() => navigate('/mypage')} className={styles.mypageBtn}>마이페이지</button>
+          <button onClick={handleLogout} className={styles.logoutBtn}>로그아웃</button>
+        </div>
       </header>
 
       <div className={styles.createSection}>
