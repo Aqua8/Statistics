@@ -5,6 +5,9 @@ const client = axios.create({
   withCredentials: true, // httpOnly 쿠키 자동 전송
 })
 
+// 동시 401 응답이 여러 개 와도 refresh는 한 번만 호출되도록 공유 Promise 사용
+let refreshPromise = null
+
 client.interceptors.response.use(
   (res) => {
     // ApiResponse 래퍼 자동 언래핑: {success, data, message} → data
@@ -15,12 +18,15 @@ client.interceptors.response.use(
   },
   async (err) => {
     const original = err.config
-    // /auth/refresh 자체가 실패하면 재시도 없이 로그인 페이지로
-    if (err.response?.status === 401 && !original._retry && !original.url.includes('/auth/refresh')) {
+    if (err.response?.status === 401 && !original._retry && !original.url?.includes('/auth/refresh')) {
       original._retry = true
+      if (!refreshPromise) {
+        refreshPromise = client.post('/auth/refresh').finally(() => {
+          refreshPromise = null
+        })
+      }
       try {
-        // 쿠키에 refreshToken이 있으면 서버가 자동으로 읽어 새 accessToken 쿠키 발급
-        await client.post('/auth/refresh')
+        await refreshPromise
         return client(original)
       } catch {
         window.location.href = '/login'

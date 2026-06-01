@@ -150,7 +150,7 @@ export default function ProjectsPage() {
                       {snippetId === p.id ? '닫기' : '삽입 코드'}
                     </button>
                     <button
-                      onClick={() => navigate('/dashboard', { state: { projectId: p.id } })}
+                      onClick={() => navigate(`/dashboard?projectId=${p.id}`)}
                       className={styles.dashBtn}
                     >
                       대시보드 →

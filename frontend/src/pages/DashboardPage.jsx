@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, memo } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, Legend,
@@ -200,10 +200,9 @@ const LiveVisitorCard = memo(function LiveVisitorCard({ projectId }) {
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const projectId = location.state?.projectId
+  const [searchParams] = useSearchParams()
+  const projectId = searchParams.get('projectId') ? Number(searchParams.get('projectId')) : null
 
-  // state 없이 직접 URL 접근(새로고침 등)하면 프로젝트 목록으로 이동
   useEffect(() => {
     if (!projectId) navigate('/projects', { replace: true })
   }, [projectId, navigate])
@@ -219,8 +218,9 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!projectId) return
     setLoading(true)
-    Promise.all([
+    Promise.allSettled([
       getDailyStats(projectId, range.from, range.to),
       getPageStats(projectId, range.from, range.to),
       getReferrerStats(projectId, range.from, range.to),
@@ -229,12 +229,12 @@ export default function DashboardPage() {
       getCountryStats(projectId, range.from, range.to),
     ])
       .then(([d, p, r, dv, br, co]) => {
-        setDaily(d)
-        setPages(p.slice(0, 10))
-        setReferrers(r.slice(0, 10))
-        setDevices(dv)
-        setBrowsers(br)
-        setCountries(co)
+        setDaily(d.status === 'fulfilled' ? d.value : [])
+        setPages(p.status === 'fulfilled' ? p.value.slice(0, 10) : [])
+        setReferrers(r.status === 'fulfilled' ? r.value.slice(0, 10) : [])
+        setDevices(dv.status === 'fulfilled' ? dv.value : [])
+        setBrowsers(br.status === 'fulfilled' ? br.value : [])
+        setCountries(co.status === 'fulfilled' ? co.value : [])
       })
       .finally(() => setLoading(false))
   }, [projectId, range])
