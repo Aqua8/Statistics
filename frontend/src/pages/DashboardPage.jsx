@@ -61,7 +61,7 @@ function BreakdownPie({ data, title, description }) {
               outerRadius={80}
               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
             >
-              {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              {data.map((entry, i) => <Cell key={entry.name ?? i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
             </Pie>
             <Tooltip formatter={(v) => v.toLocaleString()} />
             <Legend />

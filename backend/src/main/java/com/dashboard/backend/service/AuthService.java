@@ -95,9 +95,18 @@ public class AuthService {
     private String maskEmail(String email) {
         int at = email.indexOf('@');
         String local = email.substring(0, at);
-        String domain = email.substring(at);
-        String visible = local.substring(0, Math.min(2, local.length()));
-        return visible + "***" + domain;
+        String domain = email.substring(at + 1);
+
+        // local: 첫 1자만 노출, 나머지 *
+        String maskedLocal = local.charAt(0) + "*".repeat(Math.max(1, local.length() - 1));
+
+        // domain: 점(.) 앞 부분 첫 1자만 노출, 나머지 * (예: gmail.com → g***.com)
+        int dot = domain.indexOf('.');
+        String domainName = dot > 0 ? domain.substring(0, dot) : domain;
+        String domainSuffix = dot > 0 ? domain.substring(dot) : "";
+        String maskedDomain = domainName.charAt(0) + "*".repeat(Math.max(1, domainName.length() - 1)) + domainSuffix;
+
+        return maskedLocal + "@" + maskedDomain;
     }
 
     private String issueRefreshToken(User user) {
