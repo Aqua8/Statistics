@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import ProjectsPage from './pages/ProjectsPage'
+import MyPage from './pages/MyPage'
 import PrivateRoute from './components/PrivateRoute'
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
       <Route element={<PrivateRoute />}>
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/mypage" element={<MyPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

@@ -45,6 +45,14 @@ public class User {
         this.name = name;
     }
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
     public void softDelete() {
         this.delYn = "Y";
     }

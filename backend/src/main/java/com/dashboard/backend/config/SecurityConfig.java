@@ -2,7 +2,7 @@ package com.dashboard.backend.config;
 
 import com.dashboard.backend.util.CollectRateLimiter;
 import com.dashboard.backend.util.JwtTokenProvider;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
