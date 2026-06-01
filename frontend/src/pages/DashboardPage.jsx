@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, memo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, Legend,
@@ -61,7 +61,7 @@ function BreakdownPie({ data, title, description }) {
               outerRadius={80}
               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
             >
-              {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              {data.map((entry, i) => <Cell key={entry.name ?? i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
             </Pie>
             <Tooltip formatter={(v) => v.toLocaleString()} />
             <Legend />
@@ -178,12 +178,36 @@ const LiveVisitorCard = memo(function LiveVisitorCard({ projectId }) {
   const [activeVisitors, setActiveVisitors] = useState(0)
 
   useEffect(() => {
-    // httpOnly 쿠키를 브라우저가 자동으로 전송하므로 토큰을 URL에 노출하지 않음
-    const sse = new EventSource(`/api/projects/${projectId}/stats/realtime`, { withCredentials: true })
-    sse.addEventListener('visitors', (e) => setActiveVisitors(parseInt(e.data, 10)))
-    // 인증 오류 등으로 연결이 끊기면 닫고, 일시적 오류는 브라우저 자동 재연결에 맡김
-    sse.onerror = () => { if (sse.readyState === EventSource.CLOSED) sse.close() }
-    return () => sse.close()
+    let sse
+    let retryTimer
+    let retryDelay = 1000
+    const MAX_DELAY = 30000
+    let destroyed = false
+
+    const connect = () => {
+      sse = new EventSource(`/api/projects/${projectId}/stats/realtime`, { withCredentials: true })
+      sse.addEventListener('visitors', (e) => {
+        retryDelay = 1000 // 연결 성공 시 delay 초기화
+        setActiveVisitors(parseInt(e.data, 10))
+      })
+      sse.onerror = () => {
+        sse.close()
+        if (!destroyed) {
+          retryTimer = setTimeout(() => {
+            retryDelay = Math.min(retryDelay * 2, MAX_DELAY)
+            connect()
+          }, retryDelay)
+        }
+      }
+    }
+
+    connect()
+
+    return () => {
+      destroyed = true
+      clearTimeout(retryTimer)
+      sse?.close()
+    }
   }, [projectId])
 
   return (
@@ -200,8 +224,7 @@ const LiveVisitorCard = memo(function LiveVisitorCard({ projectId }) {
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const projectId = searchParams.get('projectId') ? Number(searchParams.get('projectId')) : null
+  const projectId = Number(sessionStorage.getItem('currentProjectId')) || null
 
   useEffect(() => {
     if (!projectId) navigate('/projects', { replace: true })

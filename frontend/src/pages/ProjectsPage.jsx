@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject, deleteProject } from '../api/projects'
 import { logout } from '../api/auth'
+import { clearAuthCache } from '../components/PrivateRoute'
 import styles from './ProjectsPage.module.css'
 
 const getSnippet = (trackingKey) =>
@@ -78,6 +79,7 @@ export default function ProjectsPage() {
   }, [])
 
   const handleLogout = useCallback(() => {
+    clearAuthCache()
     logout()
     navigate('/login')
   }, [navigate])
@@ -150,7 +152,7 @@ export default function ProjectsPage() {
                       {snippetId === p.id ? '닫기' : '삽입 코드'}
                     </button>
                     <button
-                      onClick={() => navigate(`/dashboard?projectId=${p.id}`)}
+                      onClick={() => { sessionStorage.setItem('currentProjectId', p.id); navigate('/dashboard') }}
                       className={styles.dashBtn}
                     >
                       대시보드 →
