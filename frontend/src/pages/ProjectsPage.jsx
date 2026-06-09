@@ -13,8 +13,8 @@ const getSnippet = (trackingKey) =>
 function injectSelfTracker(projects) {
   if (!projects.length) return
   if (document.querySelector('script[data-self-tracker]')) return // 중복 주입 방지
-  const matched = projects.find((p) => location.hostname.includes(p.domain) || p.domain.includes(location.hostname))
-  const project = matched || projects[0]
+  const project = projects.find((p) => location.hostname.includes(p.domain) || p.domain.includes(location.hostname))
+  if (!project) return
   const script = document.createElement('script')
   script.src = '/tracker.js'
   script.dataset.key = project.trackingKey
