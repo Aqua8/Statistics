@@ -12,11 +12,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +23,8 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
-    @Value("${guest.project-names:Portfolio}")
-    private String guestProjectNames;
+    @Value("${guest.project-id:1}")
+    private Long guestProjectId;
 
     public ProjectResponse create(Long userId, ProjectCreateRequest request) {
         User user = findUser(userId);
@@ -38,14 +35,16 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public List<ProjectResponse> getMyProjects(Long userId) {
-        User user = findUser(userId);
-        List<Project> projects = projectRepository.findByUserAndDelYn(user, "N");
         if (isGuest()) {
-            Set<String> allowed = Arrays.stream(guestProjectNames.split(","))
-                    .map(String::trim).collect(Collectors.toSet());
-            projects = projects.stream().filter(p -> allowed.contains(p.getName())).toList();
+            return projectRepository.findById(guestProjectId)
+                    .filter(p -> "N".equals(p.getDelYn()))
+                    .map(p -> List.of(ProjectResponse.from(p)))
+                    .orElse(List.of());
         }
-        return projects.stream().map(ProjectResponse::from).toList();
+        User user = findUser(userId);
+        return projectRepository.findByUserAndDelYn(user, "N").stream()
+                .map(ProjectResponse::from)
+                .toList();
     }
 
     private boolean isGuest() {

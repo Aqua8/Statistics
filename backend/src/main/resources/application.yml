@@ -25,7 +25,7 @@ cookie:
 
 guest:
   user-id: ${GUEST_USER_ID:3}
-  project-names: ${GUEST_PROJECT_NAMES:Portfolio}
+  project-id: ${GUEST_PROJECT_ID:1}
 
 rate-limit:
   collect:
