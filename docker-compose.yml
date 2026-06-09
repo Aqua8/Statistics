@@ -2,10 +2,10 @@ services:
   db:
     image: mariadb:11
     environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: dashboard_db
-      MARIADB_USER: statistics
-      MARIADB_PASSWORD: "123!@#qwe"
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -22,10 +22,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:mariadb://db:3306/dashboard_db
-      DB_USERNAME: statistics
-      DB_PASSWORD: "123!@#qwe"
-      JWT_SECRET: dGhpcy1pcy1hLXNlY3VyZS1zZWNyZXQta2V5LWZvci1kZXZlbG9wbWVudC1vbmx5
+      DB_URL: jdbc:mariadb://db:3306/${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       COOKIE_SECURE: "false"
       ALLOWED_ORIGINS: "http://localhost"
 
