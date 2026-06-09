@@ -31,7 +31,7 @@ services:
       COOKIE_SECURE: "false"
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       GUEST_USER_ID: ${GUEST_USER_ID}
-      GUEST_PROJECT_NAMES: ${GUEST_PROJECT_NAMES}
+      GUEST_PROJECT_ID: ${GUEST_PROJECT_ID}
 
   frontend:
     build: ./frontend
