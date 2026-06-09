@@ -54,6 +54,7 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public void verifyOwnership(Long userId, Long projectId) {
+        if (isGuest() && projectId.equals(guestProjectId)) return;
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
         if ("Y".equals(project.getDelYn())) {
