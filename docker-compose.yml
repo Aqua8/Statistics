@@ -30,6 +30,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       COOKIE_SECURE: "false"
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      GUEST_USER_ID: ${GUEST_USER_ID}
+      GUEST_PROJECT_NAMES: ${GUEST_PROJECT_NAMES}
 
   frontend:
     build: ./frontend

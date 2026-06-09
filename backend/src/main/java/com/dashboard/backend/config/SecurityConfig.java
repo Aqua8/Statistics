@@ -42,6 +42,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // 외부 사이트에 심긴 tracker.js는 JWT 토큰 없이 호출하므로 인증 제외
                         .requestMatchers(req -> "POST".equals(req.getMethod()) && "/api/collect".equals(req.getRequestURI())).permitAll()
+                        // 게스트는 쓰기 작업 불가
+                        .requestMatchers(req -> "POST".equals(req.getMethod()) && req.getRequestURI().startsWith("/api/projects")).hasRole("USER")
+                        .requestMatchers(req -> "DELETE".equals(req.getMethod()) && req.getRequestURI().startsWith("/api/projects")).hasRole("USER")
+                        .requestMatchers(req -> "PUT".equals(req.getMethod()) && req.getRequestURI().startsWith("/api/user")).hasRole("USER")
                         .anyRequest().authenticated())
                 .addFilterBefore(
                         new AuthRateLimitFilter(objectMapper),

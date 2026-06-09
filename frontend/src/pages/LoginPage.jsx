@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { login } from '../api/auth'
+import { login, guestLogin } from '../api/auth'
 import styles from './AuthPage.module.css'
 
 export default function LoginPage() {
@@ -17,10 +17,25 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await login(form.email, form.password)
+      sessionStorage.removeItem('guestMode')
       navigate('/projects')
     } catch (err) {
       const msg = err.response?.data?.message
       setError(msg || '이메일 또는 비밀번호가 올바르지 않습니다.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGuestLogin = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await guestLogin()
+      sessionStorage.setItem('guestMode', 'true')
+      navigate('/projects')
+    } catch {
+      setError('게스트 입장에 실패했습니다. 잠시 후 다시 시도해주세요.')
     } finally {
       setLoading(false)
     }
@@ -64,6 +79,15 @@ export default function LoginPage() {
             {loading ? '로그인 중...' : '로그인'}
           </button>
         </form>
+        <div className={styles.divider}>또는</div>
+        <button
+          type="button"
+          onClick={handleGuestLogin}
+          className={styles.guestButton}
+          disabled={loading}
+        >
+          게스트로 입장
+        </button>
         <p className={styles.link}>
           <Link to="/forgot-password">비밀번호를 잊으셨나요?</Link>
         </p>

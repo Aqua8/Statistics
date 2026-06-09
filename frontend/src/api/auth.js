@@ -15,6 +15,9 @@ export const checkEmail = (email) =>
 export const resetPassword = (email, newPassword) =>
   client.post('/auth/reset-password', { email, newPassword })
 
+export const guestLogin = () =>
+  client.post('/auth/guest')
+
 // 서버에서 refreshToken 쿠키를 읽어 삭제하고 accessToken 쿠키도 만료 처리
 export const logout = () => {
   client.post('/auth/logout').catch((err) => {

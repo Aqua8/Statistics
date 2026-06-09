@@ -25,6 +25,7 @@ function injectSelfTracker(projects) {
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
+  const isGuest = sessionStorage.getItem('guestMode') === 'true'
   const [projects, setProjects] = useState([])
   const [form, setForm] = useState({ name: '', domain: '' })
   const [loading, setLoading] = useState(true)
@@ -80,6 +81,7 @@ export default function ProjectsPage() {
 
   const handleLogout = useCallback(() => {
     clearAuthCache()
+    sessionStorage.removeItem('guestMode')
     logout()
     navigate('/login')
   }, [navigate])
@@ -92,32 +94,35 @@ export default function ProjectsPage() {
           <h1 className={styles.headerTitle}>내 프로젝트</h1>
         </div>
         <div className={styles.headerActions}>
-          <button onClick={() => navigate('/mypage')} className={styles.mypageBtn}>마이페이지</button>
+          {isGuest && <span className={styles.guestBadge}>게스트</span>}
+          {!isGuest && <button onClick={() => navigate('/mypage')} className={styles.mypageBtn}>마이페이지</button>}
           <button onClick={handleLogout} className={styles.logoutBtn}>로그아웃</button>
         </div>
       </header>
 
-      <div className={styles.createSection}>
-        <p className={styles.createTitle}>새 프로젝트 추가</p>
-        <form onSubmit={handleCreate} className={styles.createForm}>
-          <input
-            placeholder="프로젝트 이름"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className={styles.input}
-            required
-          />
-          <input
-            placeholder="도메인 (예: example.com)"
-            value={form.domain}
-            onChange={(e) => setForm({ ...form, domain: e.target.value })}
-            className={styles.input}
-            required
-          />
-          <button type="submit" className={styles.createBtn}>+ 추가</button>
-        </form>
-        {createError && <p className={styles.createError}>{createError}</p>}
-      </div>
+      {!isGuest && (
+        <div className={styles.createSection}>
+          <p className={styles.createTitle}>새 프로젝트 추가</p>
+          <form onSubmit={handleCreate} className={styles.createForm}>
+            <input
+              placeholder="프로젝트 이름"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className={styles.input}
+              required
+            />
+            <input
+              placeholder="도메인 (예: example.com)"
+              value={form.domain}
+              onChange={(e) => setForm({ ...form, domain: e.target.value })}
+              className={styles.input}
+              required
+            />
+            <button type="submit" className={styles.createBtn}>+ 추가</button>
+          </form>
+          {createError && <p className={styles.createError}>{createError}</p>}
+        </div>
+      )}
 
       {actionError && <p className={styles.createError}>{actionError}</p>}
 
@@ -145,24 +150,28 @@ export default function ProjectsPage() {
                     <code className={styles.key}>{p.trackingKey}</code>
                   </div>
                   <div className={styles.actions}>
-                    <button
-                      onClick={() => setSnippetId(snippetId === p.id ? null : p.id)}
-                      className={styles.snippetBtn}
-                    >
-                      {snippetId === p.id ? '닫기' : '삽입 코드'}
-                    </button>
+                    {!isGuest && (
+                      <button
+                        onClick={() => setSnippetId(snippetId === p.id ? null : p.id)}
+                        className={styles.snippetBtn}
+                      >
+                        {snippetId === p.id ? '닫기' : '삽입 코드'}
+                      </button>
+                    )}
                     <button
                       onClick={() => { sessionStorage.setItem('currentProjectId', p.id); navigate('/dashboard') }}
                       className={styles.dashBtn}
                     >
                       대시보드 →
                     </button>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className={styles.deleteBtn}
-                    >
-                      삭제
-                    </button>
+                    {!isGuest && (
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className={styles.deleteBtn}
+                      >
+                        삭제
+                      </button>
+                    )}
                   </div>
                 </div>
                 {snippetId === p.id && (

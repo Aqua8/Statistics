@@ -45,6 +45,17 @@
   align-items: center;
 }
 
+.guestBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7c6af7;
+  background: #ede9ff;
+  border: 1px solid #c4b5fd;
+  border-radius: 20px;
+  padding: 4px 12px;
+  letter-spacing: 0.2px;
+}
+
 .mypageBtn {
   background: none;
   border: 1.5px solid var(--border);
