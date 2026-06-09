@@ -27,14 +27,24 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       COOKIE_SECURE: "false"
-      ALLOWED_ORIGINS: "http://localhost"
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
 
   frontend:
     build: ./frontend
-    depends_on:
-      - backend
+
+  portfolio:
+    build: ../Portfolio
+
+  proxy:
+    image: nginx:alpine
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf
     ports:
       - "80:80"
+    depends_on:
+      - frontend
+      - backend
+      - portfolio
 
 volumes:
   db_data:
