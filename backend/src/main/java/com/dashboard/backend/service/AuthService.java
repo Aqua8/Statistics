@@ -13,6 +13,7 @@ import com.dashboard.backend.repository.RefreshTokenRepository;
 import com.dashboard.backend.repository.UserRepository;
 import com.dashboard.backend.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,17 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${guest.user-id}")
+    private Long guestUserId;
+
+    @Transactional(readOnly = true)
+    public String guestLogin() {
+        userRepository.findById(guestUserId)
+                .filter(u -> "N".equals(u.getDelYn()))
+                .orElseThrow(() -> new IllegalStateException("게스트 사용자가 설정되지 않았습니다."));
+        return jwtTokenProvider.generateGuestToken(guestUserId);
+    }
 
     public void register(RegisterRequest request) {
         if (userRepository.existsByEmailAndDelYn(request.getEmail(), "N")) {

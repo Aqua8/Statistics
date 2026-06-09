@@ -23,6 +23,10 @@ spring:
 cookie:
   secure: ${COOKIE_SECURE:false}  # 프로덕션(HTTPS)에서는 true로 설정
 
+guest:
+  user-id: ${GUEST_USER_ID:3}
+  project-names: ${GUEST_PROJECT_NAMES:Portfolio}
+
 rate-limit:
   collect:
     max-requests: 60   # IP당 허용 최대 요청 수

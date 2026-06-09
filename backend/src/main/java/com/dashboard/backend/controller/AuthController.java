@@ -77,6 +77,13 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
+    @PostMapping("/guest")
+    public ResponseEntity<ApiResponse<Void>> guestLogin(HttpServletResponse response) {
+        String accessToken = authService.guestLogin();
+        response.addHeader("Set-Cookie", buildCookie("accessToken", accessToken, "/api", 3600));
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
             HttpServletRequest request, HttpServletResponse response) {

@@ -46,8 +46,23 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    public String generateGuestToken(Long userId) {
+        Date now = new Date();
+        return Jwts.builder()
+                .subject(userId.toString())
+                .claim("guest", true)
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expiration))
+                .signWith(signingKey)
+                .compact();
+    }
+
     public Long getUserId(String token) {
         return Long.parseLong(parseClaims(token).getSubject());
+    }
+
+    public boolean isGuestToken(String token) {
+        return Boolean.TRUE.equals(parseClaims(token).get("guest", Boolean.class));
     }
 
     public boolean validateToken(String token) {
