@@ -12,5 +12,7 @@ public interface PageStatRepository extends JpaRepository<PageStat, Long> {
     List<PageStat> findByProjectAndStatDateBetweenOrderByViewsDesc(
             Project project, LocalDate from, LocalDate to);
 
+    boolean existsByProjectAndStatDate(Project project, LocalDate statDate);
+
     void deleteByProjectAndStatDate(Project project, LocalDate statDate);
 }

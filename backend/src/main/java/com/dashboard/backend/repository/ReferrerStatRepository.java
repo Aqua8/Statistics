@@ -12,5 +12,7 @@ public interface ReferrerStatRepository extends JpaRepository<ReferrerStat, Long
     List<ReferrerStat> findByProjectAndStatDateBetweenOrderByVisitsDesc(
             Project project, LocalDate from, LocalDate to);
 
+    boolean existsByProjectAndStatDate(Project project, LocalDate statDate);
+
     void deleteByProjectAndStatDate(Project project, LocalDate statDate);
 }

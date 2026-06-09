@@ -101,7 +101,7 @@ const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>
           일별 트래픽
-          <InfoButton description={"Spring Batch가 매일 새벽 1시에 전날 로그를 집계한 결과입니다.\n\n• 페이지뷰: pageview 이벤트 총 횟수\n• 순방문자: 고유 IP 기준 중복 제거\n\n오늘 데이터는 내일 새벽 1시 이후 반영됩니다."} />
+          <InfoButton description={"Spring Batch가 매일 새벽 1시에 전날 로그를 집계한 결과입니다.\n\n• 페이지뷰: pageview 이벤트 총 횟수\n• 순방문자: 고유 IP 기준 중복 제거\n\n오늘 날짜 선택 시 현재 시각까지의 원시 로그를 직접 집계해 표시합니다."} />
         </h2>
         <ResponsiveContainer width="100%" height={240}>
           <LineChart data={daily}>

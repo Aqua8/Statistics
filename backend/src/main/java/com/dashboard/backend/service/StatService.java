@@ -82,16 +82,57 @@ public class StatService {
 
     public List<PageStatResponse> getPageStats(Long projectId, LocalDate from, LocalDate to) {
         Project project = findProject(projectId);
-        return pageStatRepository
-                .findByProjectAndStatDateBetweenOrderByViewsDesc(project, from, to)
-                .stream().map(PageStatResponse::from).toList();
+        List<PageStatResponse> result = new ArrayList<>(
+                pageStatRepository
+                        .findByProjectAndStatDateBetweenOrderByViewsDesc(project, from, to)
+                        .stream().map(PageStatResponse::from).toList()
+        );
+
+        LocalDate today = LocalDate.now();
+        boolean todayInRange = !today.isBefore(from) && !today.isAfter(to);
+        boolean todayAlreadyAggregated = pageStatRepository.existsByProjectAndStatDate(project, today);
+
+        if (todayInRange && !todayAlreadyAggregated) {
+            String key = project.getTrackingKey();
+            LocalDateTime start = today.atStartOfDay();
+            LocalDateTime end = today.atTime(23, 59, 59, 999_999_999);
+            pageLogRepository.groupByPageUrl(key, start, end).stream()
+                    .map(row -> new PageStatResponse(
+                            (String) row[0],
+                            ((Number) row[1]).longValue(),
+                            ((Number) row[2]).longValue()))
+                    .forEach(result::add);
+            result.sort((a, b) -> Long.compare(b.getViews(), a.getViews()));
+        }
+
+        return result;
     }
 
     public List<ReferrerStatResponse> getReferrerStats(Long projectId, LocalDate from, LocalDate to) {
         Project project = findProject(projectId);
-        return referrerStatRepository
-                .findByProjectAndStatDateBetweenOrderByVisitsDesc(project, from, to)
-                .stream().map(ReferrerStatResponse::from).toList();
+        List<ReferrerStatResponse> result = new ArrayList<>(
+                referrerStatRepository
+                        .findByProjectAndStatDateBetweenOrderByVisitsDesc(project, from, to)
+                        .stream().map(ReferrerStatResponse::from).toList()
+        );
+
+        LocalDate today = LocalDate.now();
+        boolean todayInRange = !today.isBefore(from) && !today.isAfter(to);
+        boolean todayAlreadyAggregated = referrerStatRepository.existsByProjectAndStatDate(project, today);
+
+        if (todayInRange && !todayAlreadyAggregated) {
+            String key = project.getTrackingKey();
+            LocalDateTime start = today.atStartOfDay();
+            LocalDateTime end = today.atTime(23, 59, 59, 999_999_999);
+            pageLogRepository.groupByReferrer(key, start, end).stream()
+                    .map(row -> new ReferrerStatResponse(
+                            (String) row[0],
+                            ((Number) row[1]).longValue()))
+                    .forEach(result::add);
+            result.sort((a, b) -> Long.compare(b.getVisits(), a.getVisits()));
+        }
+
+        return result;
     }
 
     // 디바이스/브라우저는 사전 집계 테이블이 없어 원시 page_logs를 직접 집계
