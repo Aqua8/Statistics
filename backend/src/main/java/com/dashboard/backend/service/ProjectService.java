@@ -23,8 +23,8 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
 
-    @Value("${guest.project-id:1}")
-    private Long guestProjectId;
+    @Value("${guest.user-id}")
+    private Long guestUserId;
 
     public ProjectResponse create(Long userId, ProjectCreateRequest request) {
         User user = findUser(userId);
@@ -36,10 +36,10 @@ public class ProjectService {
     @Transactional(readOnly = true)
     public List<ProjectResponse> getMyProjects(Long userId) {
         if (isGuest()) {
-            return projectRepository.findById(guestProjectId)
-                    .filter(p -> "N".equals(p.getDelYn()))
-                    .map(p -> List.of(ProjectResponse.from(p)))
-                    .orElse(List.of());
+            User guestUser = findUser(guestUserId);
+            return projectRepository.findByUserAndDelYn(guestUser, "N").stream()
+                    .map(ProjectResponse::from)
+                    .toList();
         }
         User user = findUser(userId);
         return projectRepository.findByUserAndDelYn(user, "N").stream()
@@ -54,13 +54,13 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public void verifyOwnership(Long userId, Long projectId) {
-        if (isGuest() && projectId.equals(guestProjectId)) return;
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
         if ("Y".equals(project.getDelYn())) {
             throw new IllegalArgumentException("프로젝트를 찾을 수 없습니다.");
         }
-        if (!project.getUser().getId().equals(userId)) {
+        Long ownerId = isGuest() ? guestUserId : userId;
+        if (!project.getUser().getId().equals(ownerId)) {
             throw new IllegalArgumentException("권한이 없습니다.");
         }
     }
