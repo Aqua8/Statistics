@@ -1,0 +1,73 @@
+services:
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ../init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  backend:
+    build: ../backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mariadb://db:3306/${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      COOKIE_SECURE: "true"
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      GUEST_USER_ID: ${GUEST_USER_ID}
+      GUEST_PROJECT_ID: ${GUEST_PROJECT_ID}
+
+  frontend:
+    build: ../frontend
+    restart: unless-stopped
+
+  portfolio:
+    build: ../../Portfolio
+    restart: unless-stopped
+
+  proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    environment:
+      STATS_DOMAIN: ${STATS_DOMAIN}
+      PORTFOLIO_DOMAIN: ${PORTFOLIO_DOMAIN}
+    volumes:
+      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - frontend
+      - backend
+      - portfolio
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_www:/var/www/certbot
+      - certbot_certs:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  db_data:
+  certbot_www:
+  certbot_certs:

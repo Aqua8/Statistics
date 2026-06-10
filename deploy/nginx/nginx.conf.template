@@ -1,0 +1,95 @@
+# HTTP - certbot 챌린지 처리 + HTTPS 리다이렉트
+server {
+    listen 80;
+    server_name ${STATS_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 80;
+    server_name ${PORTFOLIO_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# Statistics 대시보드
+server {
+    listen 443 ssl;
+    server_name ${STATS_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${STATS_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${STATS_DOMAIN}/privkey.pem;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    ssl_session_cache shared:le_nginx_SSL:10m;
+    ssl_session_timeout 1440m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    # SSE 엔드포인트 - 버퍼링 비활성화
+    location ~ ^/api/projects/[^/]+/stats/realtime {
+        proxy_pass http://backend:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+
+    location /api/ {
+        proxy_pass http://backend:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://frontend:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# 포트폴리오 사이트
+server {
+    listen 443 ssl;
+    server_name ${PORTFOLIO_DOMAIN};
+
+    ssl_certificate /etc/letsencrypt/live/${PORTFOLIO_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${PORTFOLIO_DOMAIN}/privkey.pem;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    ssl_session_cache shared:le_nginx_SSL:10m;
+    ssl_session_timeout 1440m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    location / {
+        proxy_pass http://portfolio:80;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
