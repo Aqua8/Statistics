@@ -15,50 +15,116 @@ Portfolio 빌드    ../Portfolio            ../../Portfolio
 
 
 ========================================
-VM 배포 순서
+VM 최초 배포 순서
 ========================================
 
-1. VM에 Docker, Docker Compose 설치
-   sudo apt update && sudo apt install -y docker.io docker-compose-plugin
-   sudo usermod -aG docker $USER  # 재로그인 필요
+1. Docker 설치 (Debian 기준 — Ubuntu와 다름)
 
-2. 레포 클론 (같은 레벨에 위치해야 함)
-   git clone <Statistics 레포 URL>
-   git clone <Portfolio 레포 URL>
+   # 공식 저장소 추가
+   sudo apt update && sudo apt install -y ca-certificates curl gnupg
+   sudo install -m 0755 -d /etc/apt/keyrings
+   curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   sudo apt update
+
+   # 설치
+   sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+   sudo usermod -aG docker $USER
+   newgrp docker
+
+2. SSH 키 생성 및 GitHub 계정 등록
+
+   ssh-keygen -t ed25519 -C "vm-deploy" -f ~/.ssh/id_ed25519 -N ""
+   cat ~/.ssh/id_ed25519.pub  # 이 값을 GitHub에 등록
+
+   GitHub → Settings → SSH and GPG keys → New SSH key
+   ※ 레포별 deploy key 아닌 계정 SSH key로 등록해야 모든 레포 접근 가능
+
+   ssh -T git@github.com  # 연결 확인
+
+3. 레포 클론 (같은 레벨에 위치해야 함)
+
+   git clone git@github.com:Aqua8/Statistics.git
+   git clone git@github.com:Aqua8/Portfolio.git
 
    디렉토리 구조:
    ~/
    ├── Statistics/
    └── Portfolio/
 
-3. 도메인 DNS 설정
-   - STATS_DOMAIN A레코드 → VM 외부 IP
-   - PORTFOLIO_DOMAIN A레코드 → VM 외부 IP
+4. 도메인 DNS 설정
+   - Duck DNS (duckdns.org) 또는 구매한 도메인 사용
+   - STATS_DOMAIN → VM 외부 IP
+   - PORTFOLIO_DOMAIN → VM 외부 IP
    - 전파까지 수 분 ~ 수십 분 소요
 
-4. GCP 방화벽 규칙 확인
-   - TCP 80 (HTTP) 허용
-   - TCP 443 (HTTPS) 허용
+5. GCP 방화벽 규칙 추가
+   GCP 콘솔 → VPC 네트워크 → 방화벽 → 방화벽 규칙 만들기
+   - 트래픽 방향: 수신 / 소스: 0.0.0.0/0 / 프로토콜: TCP 80, 443
 
-5. .env 파일 작성
-   cd Statistics/deploy
+6. .env 파일 작성
+
+   cd ~/Statistics/deploy
    cp .env.example .env
-   nano .env   # 값 채우기
+   nano .env  # 값 채우기
 
-6. SSL 초기화 및 서비스 시작 (최초 1회)
+   ※ JWT_SECRET 생성: openssl rand -base64 32
+
+7. init.sql 업로드
+   ※ init.sql은 .gitignore에 포함되어 레포에 없음 → 로컬에서 직접 복사 필요
+   로컬에서 실행:
+   scp ~/Desktop/Development/Statistics/init.sql <user>@<vm-ip>:~/Statistics/
+
+8. SSL 초기화 및 서비스 시작 (최초 1회)
+
    ./scripts/init-ssl.sh
 
-7. 정상 동작 확인
-   docker compose ps
-   docker compose logs proxy
+   ※ SSH 세션이 끊길 수 있으므로 tmux 또는 screen 사용 권장
+   tmux new -s deploy
+   ./scripts/init-ssl.sh
+   # 끊겨도 tmux attach -t deploy 로 재접속
+
+9. 게스트 유저 / 프로젝트 DB 데이터 삽입
+   ※ init.sql에 포함되어 있지 않은 경우 수동 삽입 필요
+
+   set -a; source .env; set +a
+
+   docker compose exec db mariadb -uroot -p$DB_ROOT_PASSWORD $DB_NAME -e "
+   INSERT INTO users (id, email, password, name, created_at, del_yn)
+   VALUES (<GUEST_USER_ID>, '<email>', '<bcrypt_password>', '<name>', NOW(), 'N');
+
+   INSERT INTO projects (id, user_id, name, domain, tracking_key, created_at, del_yn)
+   VALUES (<GUEST_PROJECT_ID>, <GUEST_USER_ID>, '<name>', '<domain>', '<tracking_key>', NOW(), 'N');
+   "
+
+10. 정상 동작 확인
+
+    docker compose ps
+    docker compose logs proxy
 
 
 ========================================
-이후 관리 명령어
+이후 코드 업데이트 반영 방법
+========================================
+
+# Statistics 업데이트
+cd ~/Statistics && git pull origin main
+cd ~/Statistics/deploy && docker compose up -d --build backend frontend
+
+# Portfolio 업데이트
+cd ~/Portfolio && git pull origin main
+cd ~/Statistics/deploy && docker compose up -d --build portfolio
+
+
+========================================
+관리 명령어
 ========================================
 
 서비스 중지:       docker compose down
 서비스 재시작:     docker compose restart
 로그 확인:         docker compose logs -f [서비스명]
 이미지 재빌드:     docker compose up -d --build [서비스명]
-DB 접속:           docker compose exec db mariadb -u$DB_USERNAME -p$DB_PASSWORD $DB_NAME
+
+DB 접속:
+   set -a; source .env; set +a
+   docker compose exec db mariadb -u$DB_USERNAME -p$DB_PASSWORD $DB_NAME
