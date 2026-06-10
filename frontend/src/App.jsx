@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
@@ -7,19 +8,30 @@ import MyPage from './pages/MyPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import PrivateRoute from './components/PrivateRoute'
 
+function RouteTracker() {
+  const location = useLocation()
+  useEffect(() => {
+    window.tracker?.pageview()
+  }, [location.pathname])
+  return null
+}
+
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route element={<PrivateRoute />}>
-        <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/mypage" element={<MyPage />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    <>
+      <RouteTracker />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route element={<PrivateRoute />}>
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/mypage" element={<MyPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </>
   )
 }
 
