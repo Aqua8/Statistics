@@ -17,7 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,11 +85,14 @@ public class StatService {
 
     public List<PageStatResponse> getPageStats(Long projectId, LocalDate from, LocalDate to) {
         Project project = findProject(projectId);
-        List<PageStatResponse> result = new ArrayList<>(
-                pageStatRepository
-                        .findByProjectAndStatDateBetweenOrderByViewsDesc(project, from, to)
-                        .stream().map(PageStatResponse::from).toList()
-        );
+
+        // URL 기준으로 views/uniqueVisitors 합산 (날짜별 중복 제거)
+        Map<String, long[]> urlStats = new LinkedHashMap<>();
+        pageStatRepository.sumByPageUrlBetween(project, from, to)
+                .forEach(row -> urlStats.put(
+                        (String) row[0],
+                        new long[]{((Number) row[1]).longValue(), ((Number) row[2]).longValue()}
+                ));
 
         LocalDate today = LocalDate.now();
         boolean todayInRange = !today.isBefore(from) && !today.isAfter(to);
@@ -96,16 +102,19 @@ public class StatService {
             String key = project.getTrackingKey();
             LocalDateTime start = today.atStartOfDay();
             LocalDateTime end = today.atTime(23, 59, 59, 999_999_999);
-            pageLogRepository.groupByPageUrl(key, start, end).stream()
-                    .map(row -> new PageStatResponse(
-                            (String) row[0],
-                            ((Number) row[1]).longValue(),
-                            ((Number) row[2]).longValue()))
-                    .forEach(result::add);
-            result.sort((a, b) -> Long.compare(b.getViews(), a.getViews()));
+            pageLogRepository.groupByPageUrl(key, start, end).forEach(row -> {
+                String url = (String) row[0];
+                long views = ((Number) row[1]).longValue();
+                long unique = ((Number) row[2]).longValue();
+                urlStats.merge(url, new long[]{views, unique},
+                        (existing, added) -> new long[]{existing[0] + added[0], existing[1] + added[1]});
+            });
         }
 
-        return result;
+        return urlStats.entrySet().stream()
+                .map(e -> new PageStatResponse(e.getKey(), e.getValue()[0], e.getValue()[1]))
+                .sorted((a, b) -> Long.compare(b.getViews(), a.getViews()))
+                .collect(Collectors.toList());
     }
 
     public List<ReferrerStatResponse> getReferrerStats(Long projectId, LocalDate from, LocalDate to) {
