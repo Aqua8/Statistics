@@ -17,7 +17,7 @@ services:
       retries: 10
       start_period: 30s
 
-  backend:
+  statistics-backend:
     build: ../backend
     restart: unless-stopped
     depends_on:
@@ -33,11 +33,11 @@ services:
       GUEST_USER_ID: ${GUEST_USER_ID}
       GUEST_PROJECT_ID: ${GUEST_PROJECT_ID}
 
-  frontend:
+  statistics-frontend:
     build: ../frontend
     restart: unless-stopped
 
-  portfolio:
+  portfolio-frontend:
     build: ../../Portfolio
     restart: unless-stopped
 
@@ -55,9 +55,9 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      - frontend
-      - backend
-      - portfolio
+      - statistics-frontend
+      - statistics-backend
+      - portfolio-frontend
 
   certbot:
     image: certbot/certbot
