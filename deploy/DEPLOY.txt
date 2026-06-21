@@ -46,16 +46,24 @@ VM 최초 배포 순서
 
    git clone git@github.com:Aqua8/Statistics.git
    git clone git@github.com:Aqua8/Portfolio.git
+   git clone git@github.com:Aqua8/MatJip.git
 
    디렉토리 구조:
    ~/
    ├── Statistics/
-   └── Portfolio/
+   ├── Portfolio/
+   └── MatJip/
+
+   ※ MatJip 백엔드는 prod 프로파일(application-prod.yml, 커밋됨)을 사용하며
+     스키마는 기동 시 schema.sql(CREATE TABLE IF NOT EXISTS)로 자동 생성됨 → 별도 init.sql 불필요
+   ※ MatJip 이미지 업로드(GCS)는 VM 서비스 계정의 ADC를 사용하므로
+     VM 서비스 계정에 해당 GCS 버킷 권한(objectAdmin)이 있어야 함. 키 파일 마운트 불필요.
 
 4. 도메인 DNS 설정
    - Duck DNS (duckdns.org) 또는 구매한 도메인 사용
    - STATS_DOMAIN → VM 외부 IP
    - PORTFOLIO_DOMAIN → VM 외부 IP
+   - MATJIP_DOMAIN → VM 외부 IP
    - 전파까지 수 분 ~ 수십 분 소요
 
 5. GCP 방화벽 규칙 추가
@@ -113,7 +121,11 @@ cd ~/Statistics/deploy && docker compose up -d --build backend frontend
 
 # Portfolio 업데이트
 cd ~/Portfolio && git pull origin main
-cd ~/Statistics/deploy && docker compose up -d --build portfolio
+cd ~/Statistics/deploy && docker compose up -d --build portfolio-frontend
+
+# MatJip 업데이트
+cd ~/MatJip && git pull origin main
+cd ~/Statistics/deploy && docker compose up -d --build matjip-backend matjip-frontend
 
 
 ========================================

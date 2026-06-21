@@ -17,7 +17,7 @@ docker compose run --rm --no-deps --entrypoint sh certbot -c \
   "openssl dhparam -out /etc/letsencrypt/ssl-dhparams.pem 2048"
 
 echo "==> 임시 자체 서명 인증서 생성 중..."
-for domain in "$STATS_DOMAIN" "$PORTFOLIO_DOMAIN"; do
+for domain in "$STATS_DOMAIN" "$PORTFOLIO_DOMAIN" "$MATJIP_DOMAIN"; do
   docker compose run --rm --no-deps --entrypoint sh certbot -c "
     mkdir -p /etc/letsencrypt/live/$domain && \
     openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
@@ -34,7 +34,7 @@ echo "==> nginx 준비 대기 중..."
 sleep 15
 
 echo "==> Let's Encrypt 인증서 발급 중..."
-for domain in "$STATS_DOMAIN" "$PORTFOLIO_DOMAIN"; do
+for domain in "$STATS_DOMAIN" "$PORTFOLIO_DOMAIN" "$MATJIP_DOMAIN"; do
   docker compose run --rm certbot certonly \
     --webroot -w /var/www/certbot \
     --email "$CERTBOT_EMAIL" \
@@ -50,3 +50,4 @@ echo ""
 echo "완료!"
 echo "  Statistics:  https://$STATS_DOMAIN"
 echo "  Portfolio:   https://$PORTFOLIO_DOMAIN"
+echo "  MatJip:      https://$MATJIP_DOMAIN"
