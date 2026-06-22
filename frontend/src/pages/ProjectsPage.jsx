@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject, deleteProject } from '../api/projects'
+import { runBatch } from '../api/admin'
 import { logout } from '../api/auth'
 import { clearAuthCache } from '../components/PrivateRoute'
 import styles from './ProjectsPage.module.css'
@@ -33,6 +34,11 @@ export default function ProjectsPage() {
   const [actionError, setActionError] = useState('')
   const [snippetId, setSnippetId] = useState(null)
   const [copiedId, setCopiedId] = useState(null)
+  const [batchProjectId, setBatchProjectId] = useState('')
+  const [batchFrom, setBatchFrom] = useState('')
+  const [batchTo, setBatchTo] = useState('')
+  const [batchRunning, setBatchRunning] = useState(false)
+  const [batchLog, setBatchLog] = useState([])
 
   const handleCopy = useCallback((trackingKey, id) => {
     navigator.clipboard.writeText(getSnippet(trackingKey))
@@ -78,6 +84,28 @@ export default function ProjectsPage() {
       setActionError('프로젝트 삭제에 실패했습니다. 다시 시도해주세요.')
     }
   }, [])
+
+  const handleBatchRun = useCallback(async () => {
+    if (!batchProjectId || !batchFrom || !batchTo) return
+    const dates = []
+    const d = new Date(batchFrom)
+    const end = new Date(batchTo)
+    const fmt = (dt) =>
+      `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`
+    while (d <= end) { dates.push(fmt(new Date(d))); d.setDate(d.getDate() + 1) }
+    if (dates.length > 90) { alert('최대 90일까지 재집계할 수 있습니다.'); return }
+    setBatchRunning(true)
+    setBatchLog([])
+    for (const date of dates) {
+      try {
+        await runBatch(batchProjectId, date)
+        setBatchLog((prev) => [...prev, `${date} 완료`])
+      } catch {
+        setBatchLog((prev) => [...prev, `${date} 실패`])
+      }
+    }
+    setBatchRunning(false)
+  }, [batchProjectId, batchFrom, batchTo])
 
   const handleLogout = useCallback(() => {
     clearAuthCache()
@@ -189,6 +217,49 @@ export default function ProjectsPage() {
             ))}
           </ul>
         </>
+      )}
+
+      {!isGuest && projects.length > 0 && (
+        <div className={styles.batchSection}>
+          <p className={styles.createTitle}>배치 재집계</p>
+          <div className={styles.batchRow}>
+            <select
+              value={batchProjectId}
+              onChange={(e) => setBatchProjectId(e.target.value)}
+              className={styles.input}
+            >
+              <option value="">프로젝트 선택</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name} ({p.domain})</option>
+              ))}
+            </select>
+            <input
+              type="date"
+              value={batchFrom}
+              onChange={(e) => setBatchFrom(e.target.value)}
+              className={styles.input}
+            />
+            <span className={styles.batchSep}>~</span>
+            <input
+              type="date"
+              value={batchTo}
+              onChange={(e) => setBatchTo(e.target.value)}
+              className={styles.input}
+            />
+            <button
+              onClick={handleBatchRun}
+              disabled={batchRunning || !batchProjectId || !batchFrom || !batchTo}
+              className={styles.createBtn}
+            >
+              {batchRunning ? '실행 중...' : '재집계'}
+            </button>
+          </div>
+          {batchLog.length > 0 && (
+            <div className={styles.batchLog}>
+              {batchLog.map((line, i) => <div key={i}>{line}</div>)}
+            </div>
+          )}
+        </div>
       )}
     </div>
   )
