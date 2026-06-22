@@ -7,6 +7,7 @@ services:
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USERNAME}
       MARIADB_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Seoul
     volumes:
       - db_data:/var/lib/mysql
       - ../init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -32,6 +33,7 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       GUEST_USER_ID: ${GUEST_USER_ID}
       GUEST_PROJECT_ID: ${GUEST_PROJECT_ID}
+      TZ: Asia/Seoul
 
   statistics-frontend:
     build: ../frontend
@@ -50,6 +52,7 @@ services:
       MARIADB_DATABASE: ${MATJIP_DB_NAME}
       MARIADB_USER: ${MATJIP_DB_USERNAME}
       MARIADB_PASSWORD: ${MATJIP_DB_PASSWORD}
+      TZ: Asia/Seoul
     volumes:
       - matjip_db_data:/var/lib/mysql
     healthcheck:
@@ -72,6 +75,7 @@ services:
       DB_PASSWORD: ${MATJIP_DB_PASSWORD}
       JWT_SECRET: ${MATJIP_JWT_SECRET}
       GCS_BUCKET_NAME: ${MATJIP_GCS_BUCKET}
+      TZ: Asia/Seoul
 
   matjip-frontend:
     build:
@@ -87,6 +91,7 @@ services:
       STATS_DOMAIN: ${STATS_DOMAIN}
       PORTFOLIO_DOMAIN: ${PORTFOLIO_DOMAIN}
       MATJIP_DOMAIN: ${MATJIP_DOMAIN}
+      TZ: Asia/Seoul
     volumes:
       - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template
       - certbot_www:/var/www/certbot
