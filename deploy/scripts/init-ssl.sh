@@ -35,11 +35,14 @@ sleep 15
 
 echo "==> Let's Encrypt 인증서 발급 중..."
 for domain in "$STATS_DOMAIN" "$PORTFOLIO_DOMAIN" "$MATJIP_DOMAIN"; do
-  docker compose run --rm certbot certonly \
+  # 임시 자체서명 인증서 제거 (certbot lineage가 아니라 'live directory exists'로 발급을 막음)
+  docker compose run --rm --no-deps --entrypoint sh certbot -c \
+    "rm -rf /etc/letsencrypt/live/$domain /etc/letsencrypt/archive/$domain /etc/letsencrypt/renewal/$domain.conf"
+  # certbot 서비스의 entrypoint가 갱신 루프라, certonly 실행 시 entrypoint를 덮어써야 함
+  docker compose run --rm --entrypoint certbot certbot certonly \
     --webroot -w /var/www/certbot \
     --email "$CERTBOT_EMAIL" \
     --agree-tos --no-eff-email \
-    --force-renewal \
     -d "$domain"
 done
 
