@@ -2,10 +2,12 @@ package com.dashboard.backend.controller;
 
 import com.dashboard.backend.batch.BatchService;
 import com.dashboard.backend.dto.ApiResponse;
+import com.dashboard.backend.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,15 +19,23 @@ import java.time.LocalDate;
 public class BatchController {
 
     private final BatchService batchService;
+    private final ProjectService projectService;
 
     @PostMapping("/run")
     public ResponseEntity<ApiResponse<Void>> run(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @AuthenticationPrincipal Long userId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Long projectId) {
         try {
-            batchService.runForDate(date);
+            if (projectId != null) {
+                projectService.verifyOwnership(userId, projectId);
+                batchService.runForProject(projectId, date);
+            } else {
+                batchService.runForDate(date);
+            }
             return ResponseEntity.ok(ApiResponse.ok());
         } catch (Exception e) {
-            log.error("배치 수동 실행 실패: date={}", date, e);
+            log.error("배치 수동 실행 실패: date={}, projectId={}", date, projectId, e);
             return ResponseEntity.internalServerError()
                     .body(ApiResponse.fail("배치 작업 실행에 실패했습니다."));
         }

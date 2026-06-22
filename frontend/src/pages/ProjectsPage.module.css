@@ -391,6 +391,42 @@
   opacity: 0.4;
 }
 
+/* ── Batch Section ───────────────────────── */
+
+.batchSection {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-top: 28px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.batchRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.batchSep {
+  font-size: 14px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.batchLog {
+  margin-top: 12px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  max-height: 180px;
+  overflow-y: auto;
+  line-height: 1.9;
+}
+
 /* ── Responsive ──────────────────────────── */
 
 @media (max-width: 600px) {
