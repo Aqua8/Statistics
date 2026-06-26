@@ -166,7 +166,7 @@ const ChartsBlock = memo(function ChartsBlock({ daily, pages, referrers, devices
         <BreakdownPie
           data={countries.map((c) => ({ ...c, name: countryName(c.name) }))}
           title="국가 분포"
-          description={"방문자 IP를 기반으로 국가를 분류합니다.\n\nMaxMind GeoLite2 데이터베이스를 사용합니다.\n• 사내 네트워크 / 로컬 IP는 '알 수 없음'으로 표시됩니다."}
+          description={"방문자 IP를 기반으로 국가를 분류합니다.\n\nip-api.com을 통해 국가 코드를 조회합니다.\n• 사내 네트워크 / 로컬 IP는 '알 수 없음'으로 표시됩니다."}
         />
       </div>
     </>

@@ -23,7 +23,9 @@ public class LogCollectController {
     public ResponseEntity<ApiResponse<Void>> collect(
             @RequestBody @Valid LogCollectRequest request,
             HttpServletRequest httpRequest) {
-        logCollectService.collect(request, httpRequest.getRemoteAddr());
+        String ip = httpRequest.getHeader("X-Real-IP");
+        if (ip == null || ip.isBlank()) ip = httpRequest.getRemoteAddr();
+        logCollectService.collect(request, ip);
         return ResponseEntity.ok(ApiResponse.ok());
     }
 }
