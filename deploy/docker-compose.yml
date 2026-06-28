@@ -7,10 +7,14 @@ services:
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USERNAME}
       MARIADB_PASSWORD: ${DB_PASSWORD}
+      MATJIP_DB_NAME: ${MATJIP_DB_NAME}
+      MATJIP_DB_USERNAME: ${MATJIP_DB_USERNAME}
+      MATJIP_DB_PASSWORD: ${MATJIP_DB_PASSWORD}
       TZ: Asia/Seoul
     volumes:
       - db_data:/var/lib/mysql
       - ../init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./init/matjip.sh:/docker-entrypoint-initdb.d/matjip.sh
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -44,33 +48,15 @@ services:
     restart: unless-stopped
 
   # ── MatJip (맛집 리뷰 서비스) ──
-  matjip-db:
-    image: mariadb:11
-    restart: unless-stopped
-    environment:
-      MARIADB_ROOT_PASSWORD: ${MATJIP_DB_ROOT_PASSWORD}
-      MARIADB_DATABASE: ${MATJIP_DB_NAME}
-      MARIADB_USER: ${MATJIP_DB_USERNAME}
-      MARIADB_PASSWORD: ${MATJIP_DB_PASSWORD}
-      TZ: Asia/Seoul
-    volumes:
-      - matjip_db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   matjip-backend:
     build: ../../MatJip/backend
     restart: unless-stopped
     depends_on:
-      matjip-db:
+      db:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DB_URL: jdbc:mariadb://matjip-db:3306/${MATJIP_DB_NAME}
+      DB_URL: jdbc:mariadb://db:3306/${MATJIP_DB_NAME}
       DB_USERNAME: ${MATJIP_DB_USERNAME}
       DB_PASSWORD: ${MATJIP_DB_PASSWORD}
       JWT_SECRET: ${MATJIP_JWT_SECRET}
@@ -116,6 +102,5 @@ services:
 
 volumes:
   db_data:
-  matjip_db_data:
   certbot_www:
   certbot_certs:

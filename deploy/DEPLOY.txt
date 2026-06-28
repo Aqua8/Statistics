@@ -112,6 +112,59 @@ VM 최초 배포 순서
 
 
 ========================================
+DB 통합 마이그레이션 (matjip-db → db, 기존 서버 전용)
+========================================
+
+단일 MariaDB 컨테이너(db)에 matjip 스키마를 통합하는 작업.
+※ 새 서버 배포 시에는 이 절차 불필요 (init 스크립트가 자동 처리)
+
+1. matjip-db 데이터 백업
+
+   set -a; source .env; set +a
+   docker compose exec matjip-db mariadb-dump \
+     -u root -p$MATJIP_DB_ROOT_PASSWORD \
+     --single-transaction $MATJIP_DB_NAME > matjip_backup.sql
+
+2. matjip-backend 정지 (데이터 변경 차단)
+
+   docker compose stop matjip-backend
+
+3. .env에서 MATJIP_DB_ROOT_PASSWORD 줄 제거
+
+4. 코드 업데이트
+
+   git pull origin main
+
+5. 통합 db에 matjip 스키마·유저 생성
+
+   set -a; source .env; set +a
+   docker compose exec db mariadb -u root -p$DB_ROOT_PASSWORD -e "
+     CREATE DATABASE IF NOT EXISTS \`$MATJIP_DB_NAME\`;
+     CREATE USER IF NOT EXISTS '$MATJIP_DB_USERNAME'@'%' IDENTIFIED BY '$MATJIP_DB_PASSWORD';
+     GRANT ALL ON \`$MATJIP_DB_NAME\`.* TO '$MATJIP_DB_USERNAME'@'%';
+     FLUSH PRIVILEGES;
+   "
+
+6. 백업 데이터 복원
+
+   docker compose exec -T db mariadb \
+     -u root -p$DB_ROOT_PASSWORD $MATJIP_DB_NAME < matjip_backup.sql
+
+7. 서비스 재시작 (matjip-db 제거 + matjip-backend 재연결)
+
+   docker compose up -d --remove-orphans
+
+8. 정상 동작 확인
+
+   docker compose ps
+   docker compose logs matjip-backend --tail=50
+
+9. 이상 없으면 구 볼륨 정리 (선택)
+
+   docker volume rm deploy_matjip_db_data
+
+
+========================================
 이후 코드 업데이트 반영 방법
 ========================================
 
@@ -139,4 +192,7 @@ cd ~/Statistics/deploy && docker compose up -d --build matjip-backend matjip-fro
 
 DB 접속:
    set -a; source .env; set +a
+   # Statistics 스키마
    docker compose exec db mariadb -u$DB_USERNAME -p$DB_PASSWORD $DB_NAME
+   # MatJip 스키마
+   docker compose exec db mariadb -u$MATJIP_DB_USERNAME -p$MATJIP_DB_PASSWORD $MATJIP_DB_NAME
