@@ -18,10 +18,10 @@
 
 | 영역 | 기술 |
 |---|---|
-| Backend | Java 21, Spring Boot, Spring Data JPA, Spring Security(JWT), Spring Batch, Gradle |
-| Frontend | React, Vite, Recharts |
-| Database | MariaDB |
-| 배포 | Docker, Docker Compose, nginx, Let's Encrypt, GCP(GCE), Cloudflare |
+| Backend | Java 21, Spring Boot 4.0.6, Spring Data JPA, Spring Security, Spring Batch, JJWT 0.12.6, Gradle 9.4.1 |
+| Frontend | React 19.2, React Router 7.15, Vite 8.0, Recharts 3.8, Axios 1.16, SheetJS(xlsx) 0.18, Node.js 22 |
+| Database | MariaDB 11 |
+| 배포 | Docker, Docker Compose, nginx(alpine), Let's Encrypt(certbot), GCP(GCE), Cloudflare |
 
 ## 구조
 
